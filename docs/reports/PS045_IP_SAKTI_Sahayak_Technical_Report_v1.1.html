@@ -1,0 +1,1214 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>IP-SAKTI Sahayak — Technical Report</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root{
+    --ink:#1b2420; --ink-soft:#4a564f; --rule:#d8ddd4; --paper:#ffffff;
+    --green:#1f4d3a; --green-deep:#163528; --gold:#b8933e; --terracotta:#b4552f;
+    --bg-soft:#f6f7f3; --bg-table:#eef1ea;
+    --impl:#1f6b3a; --impl-bg:#e7f3ea;
+    --partial:#9a6a0c; --partial-bg:#fbf1dd;
+    --mock:#8a3a9a; --mock-bg:#f3e8f6;
+    --planned:#5a6670; --planned-bg:#eceef0;
+    --notmeasured:#8a4a2f; --notmeasured-bg:#f5e9e2;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:'Inter',system-ui,sans-serif; color:var(--ink); font-size:10.3pt; line-height:1.5;}
+  h1,h2,h3,h4{font-family:'Source Serif 4',Georgia,serif; color:var(--green-deep); font-weight:700; line-height:1.25;}
+  code, .mono{font-family:'JetBrains Mono',monospace; font-size:0.92em;}
+  a{color:var(--green); text-decoration:none;}
+  p{margin:0.5em 0;}
+
+  /* ---------- Page / section rhythm ---------- */
+  /* Sections flow continuously (no forced page-per-section — that produced large amounts
+     of wasted white space on short sections). Only the 6 Part boundaries force a fresh page. */
+  .page{padding:0; }
+  .section{padding-top:2pt;}
+  .section.part-start{page-break-before:always;}
+  .nobreak{page-break-inside:avoid;}
+  table{page-break-inside:auto;}
+  tr{page-break-inside:avoid; page-break-after:auto;}
+  .section > h2{page-break-after:avoid; page-break-before:auto;}
+  .section > h2 + *{page-break-before:avoid;}
+
+  /* ---------- Cover ---------- */
+  .cover{
+    height:261mm; display:flex; flex-direction:column; justify-content:space-between;
+    background:linear-gradient(165deg,var(--green-deep) 0%, var(--green) 62%, #24503c 100%);
+    color:#fff; padding:26mm 20mm; page-break-after:always;
+  }
+  .cover .eyebrow{font-size:10.5pt; letter-spacing:0.22em; text-transform:uppercase; color:#d9c98f; font-weight:600;}
+  .cover h1{color:#fff; font-size:40pt; margin:10mm 0 4mm; line-height:1.08;}
+  .cover .sub{font-size:13pt; color:#e4ede7; max-width:140mm; font-weight:400; font-family:'Inter',sans-serif;}
+  .cover .ps{display:inline-block; margin-top:9mm; border:1px solid rgba(255,255,255,0.35); border-radius:3px; padding:4mm 7mm; font-size:11pt; color:#f3e9c9;}
+  .cover .principle{font-family:'Source Serif 4',serif; font-style:italic; font-size:13pt; color:#f3e9c9; margin-top:10mm;}
+  .cover .meta{font-size:9.5pt; color:#cfe0d4; border-top:1px solid rgba(255,255,255,0.25); padding-top:6mm;}
+  .cover .meta div{margin:1.2mm 0;}
+  .cover .meta b{color:#fff;}
+
+  /* ---------- TOC ---------- */
+  .toc-page{page-break-after:always;}
+  .toc-title{font-size:22pt; margin:0 0 7mm;}
+  .toc ul{list-style:none; margin:0; padding:0;}
+  .toc li{display:flex; align-items:baseline; gap:2mm; font-size:10pt; margin:1.6mm 0;}
+  .toc li.part{margin-top:4.5mm; font-weight:700; color:var(--green-deep); font-size:10.6pt; text-transform:uppercase; letter-spacing:0.05em;}
+  .toc .dots{flex:1; border-bottom:1px dotted #9aa89e; position:relative; top:-2px;}
+  .toc .num{color:var(--ink-soft); min-width:6mm; text-align:right;}
+  .toc li.part .num{display:none;}
+
+  /* ---------- headings ---------- */
+  .section > h2{font-size:17pt; border-bottom:2px solid var(--green); padding-bottom:2mm; margin:0 0 4mm;}
+  .section > h2 .snum{color:var(--gold); margin-right:2mm;}
+  h3{font-size:12.5pt; margin:5mm 0 2mm;}
+  h4{font-size:10.8pt; margin:3.5mm 0 1.5mm; color:var(--ink);}
+
+  /* ---------- status chips ---------- */
+  .chip{display:inline-block; font-size:7.6pt; font-weight:700; letter-spacing:0.03em; text-transform:uppercase; padding:1.3pt 5pt; border-radius:3px; white-space:nowrap;}
+  .chip-implemented{color:var(--impl); background:var(--impl-bg);}
+  .chip-partial{color:var(--partial); background:var(--partial-bg);}
+  .chip-prototype{color:var(--partial); background:var(--partial-bg);}
+  .chip-mock{color:var(--mock); background:var(--mock-bg);}
+  .chip-planned{color:var(--planned); background:var(--planned-bg);}
+  .chip-notimpl{color:var(--planned); background:var(--planned-bg);}
+  .chip-notmeasured{color:var(--notmeasured); background:var(--notmeasured-bg);}
+
+  /* ---------- callouts ---------- */
+  .callout{border-left:3px solid var(--gold); background:var(--bg-soft); padding:3mm 4mm; margin:3mm 0; font-size:9.6pt; border-radius:0 3px 3px 0;}
+  .callout b{color:var(--green-deep);}
+  .callout.warn{border-left-color:var(--terracotta);}
+
+  /* ---------- tables ---------- */
+  table{width:100%; border-collapse:collapse; margin:3mm 0; font-size:9pt;}
+  th{background:var(--green-deep); color:#fff; text-align:left; padding:2.2mm 3mm; font-weight:600; font-size:8.3pt; text-transform:uppercase; letter-spacing:0.02em;}
+  td{padding:2mm 3mm; border-bottom:1px solid var(--rule); vertical-align:top;}
+  tr:nth-child(even) td{background:var(--bg-table);}
+  caption{caption-side:top; text-align:left; font-size:9pt; font-weight:600; color:var(--ink-soft); margin-bottom:1mm; font-style:italic;}
+  .tbl-compact td, .tbl-compact th{font-size:8.1pt; padding:1.5mm 2.2mm;}
+
+  /* ---------- figures / diagrams ---------- */
+  .figure{margin:4mm 0; text-align:center; page-break-inside:avoid;}
+  .figure .mermaid{display:block; margin:0 auto 3mm; background:#fff; padding:2mm; text-align:center;}
+  .figure .mermaid:last-of-type{margin-bottom:0;}
+  .figure figcaption{font-size:8.6pt; color:var(--ink-soft); margin-top:2mm; font-style:italic;}
+
+  /* ---------- legend ---------- */
+  .legend-grid{display:grid; grid-template-columns:1fr 1fr; gap:2mm 6mm;}
+  .legend-item{display:flex; gap:3mm; align-items:flex-start; font-size:9pt;}
+
+  ul,ol{margin:1.5mm 0; padding-left:5mm;}
+  li{margin:0.8mm 0;}
+  .small{font-size:8.6pt; color:var(--ink-soft);}
+  .two-col{columns:2; column-gap:7mm;}
+  .flow-text{font-family:'JetBrains Mono',monospace; font-size:8.6pt; background:var(--bg-soft); padding:3mm 4mm; border-radius:3px; line-height:1.9; white-space:pre-wrap;}
+</style>
+</head>
+<body>
+
+<!-- ============================== COVER ============================== -->
+<div class="cover">
+  <div>
+    <div class="eyebrow">Technical Architecture &amp; Implementation Report</div>
+    <h1>IP-SAKTI Sahayak</h1>
+    <div class="sub">Evidence-Grounded Intellectual Property and Regulatory Intelligence Copilot for Ayurveda</div>
+    <div class="ps">Problem Statement 045</div>
+  </div>
+  <div>
+    <div class="principle">&ldquo;Retrieve First. Reason Second. Cite Third. Verify Always.&rdquo;</div>
+  </div>
+  <div class="meta">
+    <div><b>Document type:</b> Technical Architecture &amp; Implementation Report</div>
+    <div><b>Version:</b> 1.0</div>
+    <div><b>Report date:</b> <span id="report-date"></span></div>
+    <div><b>Scope:</b> This report documents only PS-045 (IP-SAKTI Sahayak). No content from any other problem statement is included.</div>
+    <div><b>Basis:</b> Direct inspection of the current repository source code, database schema, API surface, automated test suite, and running application — no fabricated figures.</div>
+  </div>
+</div>
+
+<!-- ============================== TOC ============================== -->
+<div class="toc-page">
+  <div class="toc-title">Table of Contents</div>
+  <div class="toc" id="toc"></div>
+</div>
+
+<!-- ============================== PART I ============================== -->
+<div class="section part-start" id="sec-exec">
+<h2><span class="snum">1</span>Executive Summary</h2>
+
+<p>IP-SAKTI Sahayak is a decision-support web application that helps Ayurveda innovators, researchers, startups and IP/regulatory professionals investigate a single question from several angles at once: <i>what does the available evidence actually say about this innovation&rsquo;s intellectual property position, scientific backing, traditional-knowledge context and regulatory pathway, in a given jurisdiction?</i> It is built around one architectural discipline, carried through every module: nothing is asserted that was not first retrieved from a cited source, and nothing is shown as supported without a passage-level verification pass.</p>
+
+<div class="callout"><b>In plain terms.</b> Imagine typing a question like &ldquo;can I patent a stress-relief tablet made from Ashwagandha and Turmeric, and what rules apply in India?&rdquo; Instead of guessing an answer the way a general chatbot would, this system first searches a library of real laws, patents and studies, only writes an answer using what it actually found, double-checks every sentence of that answer against the source it came from, and says &ldquo;I don&rsquo;t have enough evidence&rdquo; rather than making something up when it isn&rsquo;t sure. It does this separately for India, the USA and Australia, since the rules differ in each. The rest of this report explains, section by section, exactly how much of that is real and working today versus still a work in progress &mdash; nothing is overstated.</div>
+
+<p>The current repository is a working full-stack application (a complete product with both the part users see and the part that runs behind the scenes): a Next.js 15 frontend, a FastAPI backend with 108 distinct API routes across 9 routers, a PostgreSQL 16 database (29 tables) with the <code>pgvector</code> extension for dense retrieval, and a hybrid retrieval pipeline that combines vector search, PostgreSQL full-text search, metadata filtering and graph expansion with deterministic reranking. A separate, server-enforced Admin Console sits alongside the user application with its own login, session scope and role check on every request. 69 automated backend tests exercise authentication/RBAC, retrieval correctness, citation verification, jurisdiction isolation, safety abstention, and a full end-to-end user journey.</p>
+
+<p>This report is written to the standard the problem statement demands: every capability is labelled with its real implementation status (<span class="chip chip-implemented">Implemented</span> / <span class="chip chip-partial">Partial</span> / <span class="chip chip-mock">Mock</span> / <span class="chip chip-planned">Planned</span> / <span class="chip chip-notmeasured">Not Measured</span>), PS-045&rsquo;s explicit requirements are kept visibly separate from engineering work added beyond them, and no performance, accuracy or corpus figure appears anywhere in this document unless it was read directly from the running system or the source code during preparation of this report.</p>
+
+<div class="callout"><b>Headline honesty note.</b> The corpus behind this system is a curated seed set — <b>39 documents, 13 sources, 81 chunks</b> (measured live via <code>GET /api/admin/metrics</code> at report time) — not a production-scale knowledge base, and several demo patents and two guidance notes are explicitly fictional and labelled as such in the product itself. Default embeddings are an offline hashing scheme, not a trained semantic model, unless reconfigured. These facts are expanded in §15, §36 and §48, and are stated here first because they materially bound every other claim in this report.</div>
+</div>
+
+<!-- 2. Problem Statement -->
+<div class="section" id="sec-problem">
+<h2><span class="snum">2</span>Problem Statement</h2>
+<p>Ayurveda innovation sits at the intersection of four domains that are each individually complex, and whose combination is where most real decisions actually fail:</p>
+<ul>
+<li><b>Intellectual property</b> — an Ayurvedic formulation&rsquo;s patentability is shaped by exclusions specific to traditional-knowledge-derived inventions (e.g. India&rsquo;s Patents Act §3(p), the Biological Diversity Act&rsquo;s NBA approval requirement), which a generic patent search tool has no concept of.</li>
+<li><b>Traditional knowledge</b> — TK context carries attribution, access and disclosure obligations that differ from ordinary prior art, and restricted repositories (e.g. TKDL) cannot legally or practically be scraped by a side project.</li>
+<li><b>Scientific evidence</b> — a study on an isolated ingredient (e.g. an Ashwagandha extract) does not automatically support a claim about a multi-ingredient finished formulation; conflating the two is a common and consequential error.</li>
+<li><b>Regulatory classification</b> — the same formulation can be a classical ASU medicine, a patent/proprietary ASU medicine, a food, or a health supplement depending on positioning and claims, under <i>different</i> frameworks in India (AYUSH/CDSCO/FSSAI), the USA (FDA/DSHEA) and Australia (TGA), which must never be silently blended together.</li>
+</ul>
+<p>Overlaying all of this is a language and access problem: much of the relevant literature and regulation is in English, but the people best placed to judge traditional context often work in Hindi; and across all of the above, the cost of a wrong but confident answer is high, while the cost of an honest &ldquo;insufficient evidence&rdquo; is low. A generic conversational AI model, prompted with general knowledge, will readily produce fluent, specific-sounding answers to exactly these questions &mdash; with no mechanism to say when it does not actually know, no binding between a claim and the passage that is supposed to support it, and no concept of jurisdiction boundaries. That is the gap PS-045 targets: not better chat, but <i>evidence discipline</i> applied to a genuinely cross-domain problem.</p>
+</div>
+
+<!-- 3. Proposed Solution -->
+<div class="section" id="sec-solution">
+<h2><span class="snum">3</span>Proposed Solution</h2>
+<p>IP-SAKTI Sahayak&rsquo;s answer is to make every module share one evidence pipeline rather than reasoning independently, and to route every user-facing claim through the same retrieve&rarr;verify&rarr;label discipline regardless of which module produced it.</p>
+<div class="figure nobreak">
+<div class="flow-text">Innovation
+   │
+   ▼
+Structured Innovation Profile  (ingredients, process, claims, target jurisdictions)
+   │
+   ├──► Traditional Knowledge Context   (public/authorised only, access-limited)
+   ├──► Scientific Evidence             (ingredient- vs formulation-level, separated)
+   ├──► Patent / Prior-Art Intelligence (jurisdiction-scoped matching, never a verdict)
+   └──► Regulatory Intelligence         (per-jurisdiction classification + pathway)
+               │
+               ▼
+        Citation Verification   (every claim bound to a passage, checked, scored)
+               │
+               ▼
+        Evidence Gaps            (what is still missing, by severity)
+               │
+               ▼
+        Human Escalation          (packet handed to a named reviewer, audited)</div>
+<figcaption>Figure 3.1 — Core solution flow, as implemented in <code>app/services/analysis.py</code>, <code>regulatory.py</code>, <code>patents.py</code> and <code>packets.py</code>.</figcaption>
+</div>
+</div>
+
+<!-- 4. Objectives -->
+<div class="section" id="sec-objectives">
+<h2><span class="snum">4</span>Objectives</h2>
+<h3>Functional Objectives</h3>
+<ul class="two-col">
+<li>Evidence-grounded answers to IP, regulatory, scientific and TK questions</li>
+<li>Source citations on every substantive claim</li>
+<li>Structured innovation profiling from a free-text description</li>
+<li>Patent / prior-art discovery scoped to the innovation&rsquo;s own target markets</li>
+<li>Scientific evidence discovery that separates ingredient- from formulation-level support</li>
+<li>Jurisdiction-specific regulatory classification and pathway guidance</li>
+<li>Multilingual interaction (English / Hindi)</li>
+<li>Explicit citation verification, not just citation display</li>
+<li>Safe abstention when evidence is missing, conflicting or out of scope</li>
+<li>Human escalation with a complete evidence packet</li>
+<li>End-to-end auditability of user and admin actions</li>
+</ul>
+<h3>Technical Objectives</h3>
+<ul class="two-col">
+<li>Hybrid retrieval (dense + lexical + metadata + graph) over a relational store, avoiding a second database system</li>
+<li>Deterministic, explainable reranking (not an opaque learned ranker)</li>
+<li>A pluggable LLM provider layer that degrades to extractive-only output rather than failing when no key is configured</li>
+<li>Hard server-side enforcement of workspace isolation and role checks, not just UI hiding</li>
+<li>A fully separate admin session scope, re-checked on every request</li>
+<li>Secure handling of confidential innovation data (hashing, validation, upload sanitisation)</li>
+<li>A real automated test suite covering security-critical paths, not just happy paths</li>
+</ul>
+</div>
+
+<!-- 5. Target Users -->
+<div class="section" id="sec-users">
+<h2><span class="snum">5</span>Target Users</h2>
+<table>
+<thead><tr><th>Intended User (PS-045 domain)</th><th>Implemented Application Role</th><th>What they can actually do today</th></tr></thead>
+<tbody>
+<tr><td>Ayurveda innovator / startup founder</td><td><code>USER</code> role, workspace role <code>RESEARCHER</code> or <code>OWNER</code></td><td>Create innovations, run research, view evidence/patents/regulatory, generate reports, raise escalations</td></tr>
+<tr><td>Institutional researcher</td><td><code>USER</code>, workspace role <code>RESEARCHER</code>/<code>VIEWER</code></td><td>Same as above, scoped to workspace membership</td></tr>
+<tr><td>IP / regulatory reviewer</td><td><code>USER</code>, workspace role <code>REVIEWER</code></td><td>Review patent-match status, resolve escalations and feedback within a workspace</td></tr>
+<tr><td>Platform administrator</td><td><code>ADMIN</code> global role <b>and</b> a separate admin-console session</td><td>Manage users/workspaces/sources/documents, monitor RAG &amp; citation quality, run evaluations, review audit logs, cross-workspace escalations/feedback</td></tr>
+</tbody>
+</table>
+<p class="small">There is no distinct implemented role for &ldquo;Ayurveda domain expert&rdquo; beyond the workspace <code>REVIEWER</code> role — domain-expert review is a workflow (escalation + reviewer assignment), not a separate account type.</p>
+</div>
+
+<!-- ============================== PART II ============================== -->
+<div class="section part-start" id="sec-func-arch">
+<h2><span class="snum">6</span>Functional Architecture</h2>
+<div class="figure nobreak">
+<pre class="mermaid">
+flowchart LR
+U[User] --> FE[Frontend] --> AUTH[Auth/AuthZ] --> API["API Layer"] --> QU["Query Understanding"] --> JUR["Jurisdiction Resolution"]
+</pre>
+<pre class="mermaid">
+flowchart LR
+TERM["Terminology Normalisation"] --> EXP["Query Expansion"] --> RET["Hybrid Retrieval"] --> RANK["Deterministic Reranking"] --> CTX["Context Assembly"] --> LLM["LLM Generation"]
+</pre>
+<pre class="mermaid">
+flowchart LR
+CLAIM["Claim Extraction"] --> VERIFY["Citation Verification"] --> SAFE["Safety Gate"] --> ANS["Final Answer"]
+ANS --> CARDS["Evidence Cards"] --> ESC["Human Escalation (optional)"]
+ANS --> AUDIT["Audit Trail"]
+</pre>
+<figcaption>Figure 6.1 — Functional pipeline (read top to bottom across the three rows). All stages shown are <span class="chip chip-implemented">Implemented</span> and traceable to <code>app/services/research.py</code>, <code>query_understanding.py</code>, <code>retrieval.py</code>, <code>verification.py</code>, <code>llm.py</code>.</figcaption>
+</div>
+<table class="tbl-compact">
+<thead><tr><th>Stage</th><th>Status</th><th>Evidence</th></tr></thead>
+<tbody>
+<tr><td>Intent / language detection, jurisdiction resolution</td><td><span class="chip chip-implemented">Implemented</span></td><td><code>services/query_understanding.py</code></td></tr>
+<tr><td>Terminology normalisation &amp; expansion</td><td><span class="chip chip-implemented">Implemented</span></td><td><code>services/terminology.py</code>, <code>models/orm.py::Term</code></td></tr>
+<tr><td>Hybrid retrieval + deterministic rerank</td><td><span class="chip chip-implemented">Implemented</span></td><td><code>services/retrieval.py</code></td></tr>
+<tr><td>LLM generation</td><td><span class="chip chip-partial">Partial</span> — depends on configured provider; extractive-only if none</td><td><code>services/llm.py</code></td></tr>
+<tr><td>Claim extraction &amp; citation verification</td><td><span class="chip chip-implemented">Implemented</span></td><td><code>services/verification.py</code></td></tr>
+<tr><td>Safety / abstention gate</td><td><span class="chip chip-implemented">Implemented</span></td><td><code>services/research.py</code></td></tr>
+<tr><td>Human escalation</td><td><span class="chip chip-implemented">Implemented</span></td><td><code>services/packets.py</code>, <code>api/endpoints/review.py</code></td></tr>
+</tbody>
+</table>
+</div>
+
+<!-- 7. High level system architecture -->
+<div class="section" id="sec-sys-arch">
+<h2><span class="snum">7</span>High-Level System Architecture</h2>
+<div class="figure nobreak">
+<pre class="mermaid">
+flowchart LR
+  subgraph Client
+    FE["Next.js 15 Frontend<br/>App Router · TanStack Query"]
+  end
+  subgraph Server["Application Server"]
+    API["FastAPI<br/>108 routes / 9 routers"]
+    SVC["Service Layer<br/>retrieval · verification · regulatory ·<br/>patents · analysis · governance · llm"]
+  end
+  subgraph Data["Data Layer"]
+    PG[("PostgreSQL 16<br/>+ pgvector (HNSW)<br/>29 tables")]
+  end
+  subgraph AI["AI Layer"]
+    LLM["LLM Provider<br/>Ollama / Gemini / Groq / Grok /<br/>OpenAI / DeepSeek / Mock"]
+    EMB["Embedding Provider<br/>hashing (default) / OpenAI / bge_m3"]
+  end
+  ADM["Admin Console<br/>separate session + RBAC gate"]
+
+  FE -- "/api/* (cookie or bearer)" --> API
+  API --> SVC
+  SVC --> PG
+  SVC --> LLM
+  SVC --> EMB
+  ADM -- "/api/admin/* (admin session only)" --> API
+</pre>
+<figcaption>Figure 7.1 — High-level system architecture. Every box is present in the running repository; no component shown is aspirational.</figcaption>
+</div>
+<p>There is a single application database (PostgreSQL with the <code>pgvector</code> extension) — there is no separate vector database product; dense retrieval runs as an HNSW-indexed similarity query inside the same Postgres instance that holds relational data. There is no message queue, no cache layer (e.g. Redis), and no separate search engine (e.g. Elasticsearch) anywhere in the stack.</p>
+</div>
+
+<!-- 8. Technology stack -->
+<div class="section" id="sec-stack">
+<h2><span class="snum">8</span>Technology Stack</h2>
+<table>
+<thead><tr><th>Layer</th><th>Technology</th><th>Purpose</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td>Frontend framework</td><td>Next.js 15.1.6 (App Router), React 19</td><td>UI, routing, server-side rendering of static pages</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>Frontend data layer</td><td>TanStack Query 5.104</td><td>Server-state fetching/caching</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>Frontend styling</td><td>Tailwind CSS 3.4.17</td><td>Utility-first styling</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>Evidence graph visualisation</td><td>@xyflow/react 12.12 (React Flow)</td><td>Interactive node/edge graph</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>Backend framework</td><td>FastAPI (&gt;=0.110, installed 0.142.1)</td><td>API server</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>ORM / migrations</td><td>SQLAlchemy 2.x (installed 2.1.1), Alembic (installed 1.20.0, 4 migrations)</td><td>Data modelling &amp; schema evolution</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>Database</td><td>PostgreSQL 16 (<code>pgvector/pgvector:pg16</code> image)</td><td>Relational + vector storage</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>Vector search</td><td>pgvector HNSW index (cosine)</td><td>Dense semantic retrieval</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>Full-text search</td><td>PostgreSQL <code>tsvector</code> + GIN index</td><td>Lexical/BM25-style retrieval</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>LLM generation</td><td>Provider abstraction: Ollama (local default in this deployment), Gemini, Groq, Grok, OpenAI, DeepSeek, Mock fallback</td><td>Answer synthesis</td><td><span class="chip chip-partial">Partial</span> — provider-dependent</td></tr>
+<tr><td>Embeddings</td><td>Hashing n-gram (default), OpenAI <code>text-embedding-3-small</code>, bge_m3 (alternatives)</td><td>Dense vector generation</td><td><span class="chip chip-partial">Partial</span> — default is not a trained semantic model</td></tr>
+<tr><td>Authentication</td><td>bcrypt password hashing, PyJWT, httpOnly cookies</td><td>Session management</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>OCR</td><td>Tesseract via <code>pytesseract</code></td><td>Scanned-document text extraction</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>PDF parsing</td><td>PyMuPDF</td><td>Native-text PDF extraction</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>Containerisation</td><td>Docker Compose, 2 Dockerfiles (backend, frontend)</td><td>Local/deployment packaging</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>CI/CD</td><td>&mdash;</td><td>&mdash;</td><td><span class="chip chip-notimpl">Not Implemented</span> — no <code>.github/workflows</code> or equivalent pipeline found</td></tr>
+</tbody>
+</table>
+</div>
+
+<!-- 9. Frontend architecture -->
+<div class="section" id="sec-frontend">
+<h2><span class="snum">9</span>Frontend Architecture</h2>
+<p>The frontend is a Next.js 15 App Router application with three route trees: public pages, the authenticated user application (<code>/app/**</code>), and a fully separate authenticated admin console (<code>/admin/**</code>) that never shares session state with the user app (two distinct React context providers — <code>lib/providers.tsx</code>&rsquo;s <code>useApp()</code> and <code>lib/admin.tsx</code>&rsquo;s <code>useAdmin()</code> — and two distinct session cookies). State management is deliberately minimal: TanStack Query for server state, React Context for session/language/workspace/jurisdiction preference, and <code>localStorage</code> for client-only persistence — no Redux/Zustand.</p>
+<h3>Page inventory (55 distinct routes)</h3>
+<table class="tbl-compact">
+<thead><tr><th>Area</th><th>Routes</th><th>Count</th></tr></thead>
+<tbody>
+<tr><td>Public</td><td><code>/</code>, <code>/login</code>, <code>/register</code>, <code>/admin/login</code></td><td>4</td></tr>
+<tr><td>User app — core</td><td><code>/app</code> (dashboard), <code>/app/innovations</code>, <code>/app/innovations/new</code>, <code>/app/assistant</code>, <code>/app/documents(+[did])</code>, <code>/app/sources</code>, <code>/app/coverage</code>, <code>/app/escalations(+[eid])</code>, <code>/app/reports(+[rid])</code>, <code>/app/feedback</code>, <code>/app/audit</code>, <code>/app/settings</code>, <code>/app/privacy</code></td><td>16</td></tr>
+<tr><td>User app — per-innovation tabs</td><td><code>/app/innovations/[id]</code> (summary) + <code>/profile</code>, <code>/classification</code>, <code>/scientific</code>, <code>/patents</code>, <code>/tk</code>, <code>/regulatory</code>, <code>/evidence</code>, <code>/graph</code>, <code>/gaps</code>, <code>/review</code></td><td>11</td></tr>
+<tr><td>User app — choosers</td><td><code>/app/analysis/[view]</code> (4 views), <code>/app/research/[kind]</code> (4 kinds)</td><td>8</td></tr>
+<tr><td>Admin console</td><td><code>/admin</code>, <code>/admin/dashboard</code>, <code>/users</code>, <code>/workspaces</code>, <code>/documents</code>, <code>/sources</code>, <code>/citations</code>, <code>/rag</code>, <code>/evaluation</code>, <code>/escalations(+[id])</code>, <code>/feedback</code>, <code>/audit-logs</code>, <code>/settings</code></td><td>14</td></tr>
+</tbody>
+</table>
+<h3>Shared component library</h3>
+<p><code>components/ui.tsx</code> provides the design-system primitives (Button, Card, Badge family — including <code>JurisdictionBadge</code>, <code>SupportBadge</code>, <code>SeverityBadge</code>, <code>TierBadge</code>, <code>FreshnessBadge</code>, <code>DemoBadge</code> — Spinner, ProgressSteps, EmptyState, ErrorState, PageHeader, Stat, Tabs, Drawer, Field, Notice, Popover, ProfileMenu). <code>components/evidence.tsx</code> provides domain cards (EvidenceCard, PatentCard, StudyCard, RegulatoryCard, SourceDrawer, SearchTrace). Error states, loading states and empty states are implemented as reusable components and used consistently, not ad hoc per page.</p>
+</div>
+
+<!-- 10. Backend architecture -->
+<div class="section" id="sec-backend">
+<h2><span class="snum">10</span>Backend Architecture</h2>
+<p>The backend follows a conventional layered FastAPI structure: <code>api/endpoints/*.py</code> (HTTP routing + request/response shaping only), <code>services/*.py</code> (business logic — retrieval, verification, regulatory classification, patent matching, analysis/gaps, governance, ingestion, evaluation, LLM access, audit), <code>models/orm.py</code> (SQLAlchemy models), <code>schemas.py</code> (Pydantic request/response contracts), <code>core/</code> (config, security, response envelope, error handling).</p>
+<table class="tbl-compact">
+<thead><tr><th>Router file</th><th>Routes</th><th>Responsibility</th></tr></thead>
+<tbody>
+<tr><td><code>auth.py</code></td><td>10</td><td>Registration, user login/session, admin login/session (separate scope), password change</td></tr>
+<tr><td><code>workspaces.py</code></td><td>5</td><td>Workspace CRUD, membership</td></tr>
+<tr><td><code>innovations.py</code></td><td>24</td><td>Innovation CRUD, profiling, analysis, evidence, scientific, TK, patents, gaps, risk, graph, classification, regulatory, summary, provisions</td></tr>
+<tr><td><code>chat.py</code></td><td>6</td><td>AI Research Assistant conversations</td></tr>
+<tr><td><code>search.py</code></td><td>8</td><td>Standalone search (general/patents/scientific/regulatory), citation verify, classification, regulatory overview</td></tr>
+<tr><td><code>review.py</code></td><td>12</td><td>Escalations, reports, audit, feedback</td></tr>
+<tr><td><code>corpus.py</code></td><td>9</td><td>Sources, documents, uploads, ingestion jobs, coverage, privacy</td></tr>
+<tr><td><code>dashboard.py</code></td><td>1</td><td>Workspace dashboard metrics</td></tr>
+<tr><td><code>admin_console.py</code></td><td>28</td><td>Everything under <code>/api/admin/*</code>, gated by a router-level <code>require_admin</code> dependency</td></tr>
+<tr><td><code>health.py</code></td><td>4 (mounted twice)</td><td>Liveness/readiness for overall, database, vector index, LLM</td></tr>
+</tbody>
+</table>
+<p>Error handling is centralised: a single <code>AppError</code> exception type carries an HTTP status, a machine-readable code and a message, and <code>core/responses.py</code> installs handlers so every response — success or failure — uses one envelope shape (<code>{success, data, meta}</code> or <code>{success:false, error:{code,message}}</code>), with stack traces never returned to the client. Structured JSON logging is installed globally and explicitly never logs request bodies (innovation text may be confidential).</p>
+</div>
+
+<!-- 11. Database architecture -->
+<div class="section" id="sec-db">
+<h2><span class="snum">11</span>Database Architecture</h2>
+<div class="figure nobreak">
+<pre class="mermaid">
+erDiagram
+  USER ||--o{ WORKSPACE_MEMBER : has
+  WORKSPACE ||--o{ WORKSPACE_MEMBER : has
+  WORKSPACE ||--o{ INNOVATION : owns
+  INNOVATION ||--|| INNOVATION_PROFILE : has
+  INNOVATION ||--o{ INNOVATION_FEATURE : has
+  INNOVATION ||--o{ EVIDENCE : has
+  INNOVATION ||--o{ EVIDENCE_GAP : has
+  INNOVATION ||--o{ PATENT_FEATURE_MATCH : has
+  INNOVATION ||--o{ ESCALATION : raises
+  INNOVATION ||--o{ REPORT : generates
+  INNOVATION_FEATURE ||--o{ PATENT_FEATURE_MATCH : matched_against
+  SOURCE ||--o{ DOCUMENT : publishes
+  DOCUMENT ||--o{ DOCUMENT_CHUNK : chunked_into
+  DOCUMENT ||--o| PATENT : "typed as"
+  DOCUMENT ||--o| SCIENTIFIC_STUDY : "typed as"
+  PATENT ||--o{ PATENT_FEATURE_MATCH : matched_by
+  DOCUMENT_CHUNK ||--o{ EVIDENCE : cited_as
+  WORKSPACE ||--o{ CONVERSATION : contains
+  CONVERSATION ||--o{ MESSAGE : contains
+  MESSAGE ||--o{ CLAIM : extracted_from
+  CLAIM ||--o{ CLAIM_EVIDENCE : verified_by
+  DOCUMENT_CHUNK ||--o{ CLAIM_EVIDENCE : supports
+</pre>
+<figcaption>Figure 11.1 — Conceptual entity-relationship model (simplified to the 17 most structurally significant of the 29 tables; see §42 for the complete inventory).</figcaption>
+</div>
+<p>All 29 tables live in one PostgreSQL schema. Enumerated status fields (<code>UserRole</code>, <code>WorkspaceRole</code>, <code>Confidentiality</code>, <code>InnovationStatus</code>, <code>FeatureType</code>, <code>SupportStatus</code>, <code>Severity</code>, <code>EscalationStatus</code>, <code>EscalationType</code>) are stored as length-bound VARCHAR columns with application-level enum validation (SQLAlchemy <code>native_enum=False</code>), not native Postgres enum types — a deliberate simplicity trade-off that keeps Alembic migrations simpler at the cost of no database-level constraint on those values. <code>DocumentChunk.embedding</code> is a <code>pgvector</code> column with an HNSW index (cosine distance, m=16, ef_construction=64); <code>DocumentChunk.search_vector</code> is a generated <code>tsvector</code> column with a GIN index, enabling the hybrid dense+lexical retrieval described in §13.</p>
+</div>
+
+<!-- 12. API architecture -->
+<div class="section" id="sec-api">
+<h2><span class="snum">12</span>API Architecture</h2>
+<p>108 distinct route definitions (112 registrations counting the health router&rsquo;s dual mount) are exposed under a single <code>/api</code> prefix (health checks are also mounted unprefixed). Every response uses the same JSON envelope. Cookie-authenticated state-changing requests must carry <code>X-Requested-With: ipsakti</code> as a CSRF defence; API clients may instead use <code>Authorization: Bearer</code>. See §43 for the complete endpoint table (all 108 routes, grouped by router, with method/purpose/auth).</p>
+<table class="tbl-compact">
+<thead><tr><th>Auth tier</th><th>Mechanism</th><th>Applies to</th></tr></thead>
+<tbody>
+<tr><td>None</td><td>&mdash;</td><td>Registration, login endpoints, health checks, session-state probes (which never 401)</td></tr>
+<tr><td>User session</td><td>Scoped JWT (<code>scope=user</code>) in httpOnly cookie or Bearer token</td><td>All <code>/api/*</code> app routes</td></tr>
+<tr><td>Workspace role</td><td>User session + <code>ctx.require(role)</code> minimum-role check (VIEWER&lt;REVIEWER&lt;RESEARCHER&lt;ADMIN&lt;OWNER)</td><td>Write operations within a workspace</td></tr>
+<tr><td>Admin session</td><td>Separate scoped JWT (<code>scope=admin</code>) + live <code>role==ADMIN</code> re-check every request</td><td>All <code>/api/admin/*</code> routes (router-level dependency)</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- ============================== PART III ============================== -->
+<!-- 13. RAG architecture -->
+<div class="section part-start" id="sec-rag">
+<h2><span class="snum">13</span>RAG Architecture</h2>
+<p class="small"><i>RAG stands for Retrieval-Augmented Generation &mdash; a search step that finds real passages first, followed by a generation step that is only allowed to write using those passages, instead of an AI model answering from memory alone.</i></p>
+<div class="figure nobreak">
+<pre class="mermaid">
+flowchart LR
+Q[User Query] --> LD[Language Detection] --> ID[Intent Detection] --> JD["Jurisdiction Detection"] --> TN["Terminology Normalisation"]
+</pre>
+<pre class="mermaid">
+flowchart LR
+QE[Query Expansion] --> HR["Hybrid Retrieval<br/>dense+lexical+metadata+graph"] --> DD[Deduplication] --> RR["Deterministic Rerank"]
+</pre>
+<pre class="mermaid">
+flowchart LR
+CA[Context Assembly] --> GEN["LLM Generation /<br/>extractive assembly"] --> CE[Claim Extraction] --> CV["Citation Verification<br/>(§23)"] --> SC["Safety Check"] --> FA[Final Answer]
+</pre>
+<figcaption>Figure 13.1 — RAG pipeline (read top to bottom across the three rows), as implemented across <code>services/query_understanding.py</code>, <code>terminology.py</code>, <code>retrieval.py</code>, <code>research.py</code>, <code>verification.py</code>.</figcaption>
+</div>
+<table class="tbl-compact">
+<thead><tr><th>Step</th><th>Input</th><th>Output</th><th>Technology</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td>Language / intent detection</td><td>Raw query text</td><td>Language tag, intent class (GENERAL/INNOVATION/PATENT/SCIENTIFIC/REGULATORY/CROSS_JURISDICTION)</td><td>Rule-based heuristics in <code>query_understanding.py</code></td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>Jurisdiction detection</td><td>Query text + explicit selection</td><td>Jurisdiction list, or a clarification/refusal signal</td><td><code>detect_jurisdictions()</code></td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>Terminology normalisation</td><td>Query + expanded terms</td><td>Canonical term, flagged ambiguity (e.g. &ldquo;Brahmi&rdquo;)</td><td><code>Term</code> table + <code>TerminologyEngine</code></td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>Hybrid retrieval</td><td>Expanded query + filters</td><td>Ranked chunk candidates</td><td>pgvector HNSW + GIN tsvector + SQL metadata filter + graph expansion, in one SQL layer (<code>retrieval.py</code>)</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>Reranking</td><td>Candidate set</td><td>Final ordered set + <code>why_retrieved</code> explanation per item</td><td>Deterministic weighted scoring (no cross-encoder/ML reranker)</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>Generation</td><td>Assembled context</td><td>Draft answer</td><td>Configured LLM provider, or direct passage quotation if none configured</td><td><span class="chip chip-partial">Partial</span> — provider-dependent</td></tr>
+<tr><td>Claim extraction + citation verification</td><td>Draft answer</td><td>Per-claim support verdict</td><td><code>verification.py</code>, see §23</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>Safety / abstention</td><td>Verified answer + evidence state</td><td>Final answer or an explicit abstention/clarification</td><td><code>research.py</code> safety gates</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+</tbody>
+</table>
+<p>For cross-jurisdiction queries, the pipeline does not merge sources into one generic retrieval call: it runs one full retrieval per selected jurisdiction and keeps results structurally separate before composing the final answer, specifically to prevent one jurisdiction&rsquo;s sources crowding out another&rsquo;s (<code>research.py</code>&rsquo;s <code>JURISDICTION_COMPARISON</code> branch).</p>
+</div>
+
+<!-- 14. Document ingestion -->
+<div class="section" id="sec-ingestion">
+<h2><span class="snum">14</span>Document Ingestion Pipeline</h2>
+<div class="figure nobreak">
+<pre class="mermaid">
+flowchart LR
+  S[Source] --> ACQ["Acquisition<br/>(admin ingest form or user upload)"]
+  ACQ --> VAL["Validation<br/>extension allowlist · magic bytes ·<br/>size limit · UTF-8 · PDF/JS rejection"]
+  VAL --> PARSE["Parsing<br/>PyMuPDF (native text)"]
+  PARSE -->|low confidence| OCR["OCR<br/>Tesseract (en + hi)"]
+  PARSE --> CLEAN[Text Cleaning]
+  OCR --> CLEAN
+  CLEAN --> CHUNK["Section-aware Chunking"]
+  CHUNK --> META["Metadata Tagging<br/>jurisdiction · domain · tier · dates"]
+  META --> EMB["Embedding<br/>hashing / OpenAI / bge_m3"]
+  EMB --> STORE["Vector + Full-text Storage<br/>(pgvector + tsvector)"]
+  STORE --> IDX[Indexing]
+</pre>
+<figcaption>Figure 14.1 — Ingestion pipeline, implemented in <code>services/ingestion.py</code> and the chunker shared with the earlier prototype under <code>rag/</code>/<code>ingestion/</code>.</figcaption>
+</div>
+<p>Every ingestion run is tracked as an <code>IngestionJob</code> row with a per-step status array, visible to admins. Duplicate detection is by content hash. Instruction-like text inside an ingested document (a prompt-injection attempt embedded in a source file) is flagged at ingestion time, down-ranked in retrieval, and excluded from key-point synthesis — this is tested explicitly (<code>tests/test_retrieval.py</code>). Jurisdiction on upload is validated against a closed set (<code>IN</code>/<code>US</code>/<code>AU</code>/<code>INTERNATIONAL</code>) rather than accepted as a free string.</p>
+</div>
+
+<!-- 15. Knowledge sources -->
+<div class="section" id="sec-sources">
+<h2><span class="snum">15</span>Knowledge Sources</h2>
+<p>As measured live from the running database at report time (<code>GET /api/admin/metrics</code>, <code>GET /api/coverage</code>): <b>13 sources, 39 documents, 81 chunks</b>, of which <b>30 documents are labelled real/seed-summary and 9 are explicitly labelled fictional demo content</b>.</p>
+<table class="tbl-compact">
+<thead><tr><th>Category</th><th>Examples in the corpus</th><th>Label</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td>Primary / official</td><td>The Patents Act 1970 (India) excerpts, Biological Diversity Act, AYUSH/CDSCO/FSSAI rules, US FDA/DSHEA provisions, Australia TGA requirements</td><td><code>SEED_SUMMARY</code> &mdash; short excerpts/close summaries of real instruments</td><td><span class="chip chip-partial">Partial</span> — summarised, not the full official text; verification against the Gazette/regulator text is explicitly recommended to the user in-product</td></tr>
+<tr><td>Authoritative secondary</td><td>Peer-reviewed study abstracts on Ashwagandha, Turmeric/curcumin, Triphala</td><td><code>SEED_SUMMARY</code></td><td><span class="chip chip-partial">Partial</span> — a small, hand-curated set, not a literature-database integration</td></tr>
+<tr><td>Supporting / demonstration</td><td>7 fictional patents (<code>DEMO-…</code> numbers, 3 IN / 2 US / 1 AU / 1 EP), 2 conflicting fictional guidance notes</td><td><code>DEMO_FICTIONAL</code></td><td><span class="chip chip-mock">Mock</span> — explicitly fictional, labelled as such everywhere they appear</td></tr>
+<tr><td>User-provided</td><td>Workspace uploads</td><td><code>PENDING_REVIEW</code></td><td><span class="chip chip-implemented">Implemented</span> workflow; content itself is unverified by definition</td></tr>
+</tbody>
+</table>
+<p>There is no live/production source integration (no scheduled crawler, no external API pull from a patent office, regulator or journal database) — every document currently in the corpus was added via the seed script or a manual ingestion call. <b>The system has no access to TKDL (Traditional Knowledge Digital Library) and does not scrape or reproduce restricted TK records</b> — this is a deliberate boundary, not a missing integration.</p>
+</div>
+
+<!-- 16. Innovation Profiler -->
+<div class="section" id="sec-profiler">
+<h2><span class="snum">16</span>Innovation Profiler</h2>
+<p>A 7-step wizard (<code>frontend/app/app/innovations/new/page.tsx</code>) collects: basic info (name, description, intended use), ingredients (common/Sanskrit/Hindi/botanical/chemical name, extract, quantity, source), formulation, process (extraction/manufacturing), claims, target markets (multi-select IN/US/AU — the authoritative field, stored as <code>Innovation.target_markets</code>), and confidentiality level. Submission calls <code>POST /api/innovations</code>, which builds a structured <code>InnovationProfile</code> and a set of typed <code>InnovationFeature</code> rows (ingredient/composition/process/extraction/delivery/dosage-form/claim/use/manufacturing/other).</p>
+<p>Profile generation explicitly flags rather than silently resolves ambiguity — e.g. a common name like &ldquo;Brahmi&rdquo; maps to two distinct botanical species (<i>Bacopa monnieri</i> or <i>Centella asiatica</i>) and is surfaced to the user as an open question, not auto-picked. A disease/treatment claim in free text is also flagged, since it changes the regulatory analysis materially. The profile and its target markets are what every downstream module (patents, regulatory, gaps) reads — there is no second, independent &ldquo;jurisdiction&rdquo; or &ldquo;markets&rdquo; field elsewhere that could silently diverge. Status: <span class="chip chip-implemented">Implemented</span>, end-to-end tested (<code>tests/test_integration_flow.py</code>).</p>
+</div>
+
+<!-- 17. Patent / Prior Art -->
+<div class="section" id="sec-patents">
+<h2><span class="snum">17</span>Patent / Prior-Art Intelligence</h2>
+<div class="figure nobreak">
+<pre class="mermaid">
+flowchart TD
+  F["Innovation Feature<br/>(e.g. extraction method)"] --> EXP["Terminology Expansion"]
+  EXP --> RET["Retrieval scoped to<br/>document_type=PATENT AND<br/>jurisdiction ⊆ Innovation.target_markets"]
+  RET --> SIM["Similarity Scoring"]
+  SIM --> MATCH["PatentFeatureMatch rows<br/>(review_required=true by default)"]
+  MATCH --> MATRIX["Feature-to-Patent Matrix"]
+  MATRIX --> FAM["Patent Family Grouping"]
+  FAM --> REVIEW["Human Review<br/>(reviewer sets match status)"]
+</pre>
+<figcaption>Figure 17.1 — Patent/prior-art matching flow (<code>services/patents.py</code>). <b>Every match is explicitly flagged for human review and never presented as a patentability or infringement verdict.</b></figcaption>
+</div>
+<p>Two code paths exist: <code>match_innovation()</code> (builds the innovation&rsquo;s own feature-to-patent matrix, persisted as <code>PatentFeatureMatch</code> rows) and <code>search_patents()</code> (ad-hoc keyword/concept search over the patent corpus, used by the standalone research page). Both now filter by jurisdiction at the SQL layer rather than discarding results after retrieval. A seed-data correctness detail worth recording here: one fictional patent is tagged jurisdiction <code>EP</code>, which is outside the three jurisdictions this system formally supports; it remains discoverable via general search but is structurally excluded from innovation-scoped matching, since <code>target_markets</code> can only ever contain <code>IN</code>/<code>US</code>/<code>AU</code>.</p>
+<p>Patent coverage in the seed corpus is thin and uneven — 3 India, 2 USA, 1 Australia, 1 EP, all fictional — which materially limits how much real prior-art signal this module can currently produce; this is stated plainly rather than implied away. Status: <span class="chip chip-implemented">Implemented</span> (mechanism), operating over <span class="chip chip-mock">Mock</span> data (corpus content).</p>
+</div>
+
+<!-- 18. TK Context -->
+<div class="section" id="sec-tk">
+<h2><span class="snum">18</span>Traditional Knowledge Context</h2>
+<p>TK-related documents in the corpus (ABS/disclosure law excerpts, TK context notes) are retrieved through the same hybrid pipeline, scoped to the <code>TK_ABS</code> domain. Access level on each TK-tagged source is explicit (<code>PUBLIC</code> / <code>RESTRICTED_RECORDS_PUBLIC_INFO</code> / <code>WORKSPACE</code> / <code>RESTRICTED</code>); documents marked <code>RESTRICTED</code> are excluded from retrieval entirely at the SQL layer (<code>d.access_level &lt;&gt; 'RESTRICTED'</code> is a hard clause in every retrieval query). A dedicated evidence gap (<code>nba-approval</code>) is raised whenever an innovation targets India or sources an ingredient from India, pointing at the Biological Diversity Act&rsquo;s NBA approval requirement. Status: <span class="chip chip-implemented">Implemented</span> for the mechanism; <span class="chip chip-mock">Mock</span>/limited for underlying TK content, since there is no restricted-database integration by design.</p>
+</div>
+
+<!-- 19. Scientific evidence -->
+<div class="section" id="sec-science">
+<h2><span class="snum">19</span>Scientific Evidence</h2>
+<p>Scientific retrieval is intentionally jurisdiction-agnostic (science doesn&rsquo;t belong to a country) but is not ingredient/formulation-agnostic: every <code>ScientificStudy</code> record carries an <code>evidence_level</code> of <code>INGREDIENT</code> or <code>FORMULATION</code>, and the scientific-evidence view explicitly states, for every ingredient-level card, that it <i>does not establish</i> efficacy of the finished multi-ingredient formulation — this distinction is enforced in code (<code>services/analysis.py</code>) and asserted in the test suite, not left to prose. The seed corpus contains 6 scientific studies, all ingredient-level (Ashwagandha, Turmeric/curcumin, Triphala) — there is currently no finished-formulation-level study in the corpus, which the gap-detection logic surfaces as a <code>formulation-evidence</code> gap by default. Status: <span class="chip chip-implemented">Implemented</span> mechanism, <span class="chip chip-mock">Mock</span>/limited underlying data.</p>
+</div>
+
+<!-- 20. Regulatory intelligence -->
+<div class="section" id="sec-regulatory">
+<h2><span class="snum">20</span>Regulatory Intelligence</h2>
+<div class="figure nobreak">
+<pre class="mermaid">
+flowchart TD
+  ANS["Questionnaire Answers<br/>(positioning, claims, markets, route)"] --> CJ["classify_jurisdiction()<br/>per-market rule branch"]
+  CJ -->|India| INR["IN: classical vs P&P ASU medicine,<br/>health supplement, Ayurveda Aahara"]
+  CJ -->|USA| USR["US: Dietary Supplement vs<br/>Botanical Drug (21 U.S.C. 321g)"]
+  CJ -->|Australia| AUR["AU: Listed / Assessed-Listed /<br/>Registered CM (TGA)"]
+  INR --> PASS[Regulatory Passport]
+  USR --> PASS
+  AUR --> PASS
+  PASS --> CMP["Side-by-side Comparison Table"]
+</pre>
+<figcaption>Figure 20.1 — Regulatory classification flow (<code>services/regulatory.py</code>). Each jurisdiction has materially different branch logic, not a shared template with a label swap.</figcaption>
+</div>
+<p>For every candidate classification, the system records a confidence score, the assumptions it made, the facts that could change the answer, and any missing questions — explicitly never a final determination. <code>comparison()</code> always shows all three jurisdictions side by side regardless of the innovation&rsquo;s own target markets (an intentional design choice for exploratory comparison), while the <i>passport</i> view is scoped to the innovation&rsquo;s actual targets. Status: <span class="chip chip-implemented">Implemented</span>.</p>
+</div>
+
+<!-- 21. Jurisdiction engine -->
+<div class="section" id="sec-jurisdiction">
+<h2><span class="snum">21</span>Jurisdiction Engine</h2>
+<p>Three jurisdictions are supported: <b>India, USA, Australia</b>. Selection happens on the landing page (a multi-select, persisted via a shared client-side preference mirroring the existing workspace-selection pattern) and is carried automatically through registration/login into the dashboard, chat assistant and research forms — not re-asked on every page. At the innovation level, <code>Innovation.target_markets</code> is the authoritative per-innovation override, feeding regulatory classification, evidence-gap detection, and (as of this report) patent matching.</p>
+<p>Jurisdiction is enforced, not cosmetic, at the retrieval layer: a hard SQL filter restricts results to the selected jurisdiction(s) plus international instruments, and a reranking term boosts jurisdiction-matching results further. A dedicated <code>JURISDICTION_COMPARISON</code> intent runs fully separate retrieval per jurisdiction rather than one blended query. If a user asks about a jurisdiction other than the one currently selected, the system detects the mismatch and asks for clarification rather than silently answering with the wrong jurisdiction&rsquo;s rules. If evidence for the selected jurisdiction is insufficient, the system says so explicitly rather than filling the gap from another jurisdiction. Admin analytics (RAG and citation monitoring) break activity down by jurisdiction. Status: <span class="chip chip-implemented">Implemented</span>, with 9 dedicated backend tests covering filter correctness, gap parity (India/USA/Australia), and the admin analytics rollups.</p>
+</div>
+
+<!-- 22. Multilingual -->
+<div class="section" id="sec-multilingual">
+<h2><span class="snum">22</span>Multilingual Architecture</h2>
+<p>Supported UI languages: <b>English and Hindi</b> — matching the PS-045 MVP target exactly; no other language is implemented. Hindi queries are handled primarily via terminology expansion over the English-language corpus (Sanskrit/Hindi/botanical/chemical name mapping), not via a parallel Hindi corpus or Hindi-trained embeddings. When an LLM is configured, Hindi questions can additionally be answered in Hindi and Hindi queries can be translated for retrieval — with an explicit guard that rejects an LLM &ldquo;translation&rdquo; that is implausibly long or that invents a named legal instrument not present in the original query (added specifically after an observed hallucination of a fictitious &ldquo;Traditional Knowledge Digital Library Act, 2005&rdquo;). OCR supports Hindi text extraction when the Tesseract Hindi language pack is installed. Status: <span class="chip chip-implemented">Implemented</span> for EN/HI UI and terminology-based retrieval; <span class="chip chip-partial">Partial</span> for LLM-based Hindi generation/translation (provider-dependent, with a demonstrated past failure mode now guarded against rather than eliminated by design).</p>
+</div>
+
+<!-- 23. Citation verification -->
+<div class="section" id="sec-citation">
+<h2><span class="snum">23</span>Citation &amp; Evidence Verification</h2>
+<div class="figure nobreak">
+<pre class="mermaid">
+flowchart LR
+ANS[Draft Answer] --> EXTRACT[Claim Extraction] --> BIND["Citation Binding"] --> C1["Passage exists?"] --> C2["Source authority"]
+</pre>
+<pre class="mermaid">
+flowchart LR
+C3["Correct jurisdiction?"] --> C4["Section/year anchors?"] --> C5["Lexical coverage"] --> C6["Semantic similarity"] --> C7["Negation/polarity check"]
+</pre>
+<pre class="mermaid">
+flowchart LR
+C8{"LLM entailment<br/>(if configured)"} --> VERDICT["SUPPORTED / PARTIAL /<br/>UNSUPPORTED / CONFLICTING /<br/>INSUFFICIENT"] --> REBUILD["Answer rebuilt from<br/>verified sentences only"]
+</pre>
+<figcaption>Figure 23.1 — Citation verification pipeline (read top to bottom across the three rows; <code>services/verification.py</code>). This is one of the most heavily iterated subsystems in the project; see §39 for specific failure modes it was built to close.</figcaption>
+</div>
+<p>This is deliberately not a cosmetic &ldquo;show a source link&rdquo; feature: the system reconstructs its final displayed answer only from sentences that survive verification against the retrieved passages, and drops/reports the rest in a <code>limitations</code> field rather than showing unverified prose. An LLM-reported verdict string is validated against an allowed set before being trusted — a malformed or out-of-vocabulary value from the model is ignored rather than acted on. Negation/polarity checking compares only against the single best-matching sentence (an earlier version produced false CONFLICTING verdicts from negation words occurring anywhere in a passage; this was fixed and is covered by a regression test). Status: <span class="chip chip-implemented">Implemented</span>, with dedicated tests for supported/contradicted/unsupported/conflicting cases and admin-side monitoring (§30).</p>
+</div>
+
+<!-- 24. Evidence graph -->
+<div class="section" id="sec-graph">
+<h2><span class="snum">24</span>Evidence Graph</h2>
+<p>Per innovation, a graph is constructed (<code>services/analysis.py::evidence_graph()</code>) with first-class node types for Innovation, Feature, Evidence, Regulation, and <b>Jurisdiction</b> (jurisdiction is a real node type, not a label on an edge), with provenance retained on every edge back to the originating passage. The frontend renders this as an interactive node/edge diagram using React Flow (<code>@xyflow/react</code>) on the <code>/app/innovations/[id]/graph</code> tab. Status: <span class="chip chip-implemented">Implemented</span>.</p>
+</div>
+
+<!-- 25. Safety & abstention -->
+<div class="section" id="sec-safety">
+<h2><span class="snum">25</span>Safety &amp; Abstention</h2>
+<p>The governing principle, enforced in code rather than only stated in a prompt: <b>do not guess when evidence is insufficient.</b> Concretely implemented gates:</p>
+<ul class="two-col">
+<li>Insufficient evidence &rarr; explicit <code>INSUFFICIENT</code> status with what was searched and what is missing</li>
+<li>Conflicting sources &rarr; shown side by side, never silently merged</li>
+<li>Jurisdiction not selected / detected &rarr; clarification request, not a guess</li>
+<li>Jurisdiction outside IN/US/AU &rarr; explicit refusal (e.g. EU questions)</li>
+<li>Outdated/superseded sources &rarr; freshness-labelled (Current / Recently checked / Potentially stale / Superseded / Unknown), excluded unless explicitly requested</li>
+<li>Unsupported claims &rarr; dropped from the final answer, not merely flagged</li>
+<li>Medical/legal-certainty questions &rarr; explicit boundary refusal (this is not a medical or legal determination)</li>
+<li>Restricted-TKDL-style requests &rarr; explicit refusal, not a best-effort answer</li>
+<li>Prompt injection in the query or in retrieved documents &rarr; detected and never followed</li>
+</ul>
+<p>Status: <span class="chip chip-implemented">Implemented</span>, each gate covered by at least one dedicated test in <code>tests/test_rag.py</code>.</p>
+</div>
+
+<!-- 26. Human in the loop -->
+<div class="section" id="sec-escalation">
+<h2><span class="snum">26</span>Human-in-the-Loop / Escalation</h2>
+<p>Four escalation types exist (<code>IP_REVIEW</code>, <code>REGULATORY_REVIEW</code>, <code>DOMAIN_REVIEW</code>, <code>HUMAN_REVIEW</code>), each created with a full evidence packet (profile, findings, gaps, citations, open questions, audit trail) attached, not just a note. Escalations carry a status workflow (<code>OPEN</code>&rarr;<code>IN_REVIEW</code>&rarr;<code>RESOLVED</code>&rarr;<code>CLOSED</code>) and, in the admin console, can be assigned to a named reviewer with accumulating reviewer notes. Evidence gaps above a severity threshold are a direct trigger surfaced to the user for escalation, not merely logged. Status: <span class="chip chip-implemented">Implemented</span>, end-to-end tested.</p>
+</div>
+
+<!-- ============================== PART IV ============================== -->
+<!-- 27. Auth & RBAC -->
+<div class="section part-start" id="sec-auth">
+<h2><span class="snum">27</span>Authentication &amp; RBAC</h2>
+<div class="figure nobreak">
+<pre class="mermaid">
+flowchart TD
+  L["/login<br/>(User tab, default)"] -->|POST /api/auth/login| US["ipsakti_session cookie<br/>scope=user"]
+  LA["/login<br/>(Admin tab) or /admin/login"] -->|POST /api/auth/admin/login<br/>role must = ADMIN| AS["ipsakti_admin cookie<br/>scope=admin, SameSite=Strict"]
+  US --> APP["/app/* routes<br/>current_user() dependency"]
+  AS --> ADM["/api/admin/* routes<br/>require_admin() dependency<br/>re-checked every request"]
+  US -.->|never valid on| ADM
+  AS -.->|never valid on| APP
+  APP --> WS["Workspace role check<br/>ctx.require(min_role)"]
+</pre>
+<figcaption>Figure 27.1 — Authentication &amp; RBAC. The two session scopes are structurally incompatible — a user-scoped token is rejected by every admin route, and vice versa, verified by a dedicated access-rules-matrix test.</figcaption>
+</div>
+<p>Two independent RBAC layers exist: a global <code>User.role</code> (<code>ADMIN</code>/<code>USER</code>) that only gates the separate admin console, and a per-workspace <code>WorkspaceRole</code> (<code>OWNER</code>&gt;<code>ADMIN</code>&gt;<code>RESEARCHER</code>&gt;<code>REVIEWER</code>&gt;<code>VIEWER</code>) that gates actions inside the app — an <code>ADMIN</code>-role user gets no special workspace privileges merely by being a global admin; they must also hold a workspace role, same as anyone else. Passwords are bcrypt-hashed; sessions are JWTs with a <code>scope</code> claim validated on every decode; admin sessions use a stricter cookie (<code>SameSite=Strict</code>, shorter TTL) and additionally require a live re-check of <code>role==ADMIN</code> on every request, not only at login (so a demotion takes effect immediately, not at next login). Login attempts are throttled with a sliding-window limiter. Status: <span class="chip chip-implemented">Implemented</span>, with 15 dedicated security tests covering the full access-rules matrix (unauthenticated&rarr;redirect, USER&rarr;admin routes forbidden, ADMIN&rarr;admin routes allowed, cross-user data isolation even from the admin document view).</p>
+</div>
+
+<!-- 28. Security -->
+<div class="section" id="sec-security">
+<h2><span class="snum">28</span>Security Architecture</h2>
+<table class="tbl-compact">
+<thead><tr><th>Control</th><th>Implementation</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td>Password hashing</td><td>bcrypt, with enforced password rules on registration (min length, letter + number)</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>Session transport</td><td>httpOnly, SameSite cookies (Strict for admin, Lax for app); Bearer token for API clients</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>CSRF defence</td><td><code>X-Requested-With: ipsakti</code> required on cookie-authenticated writes</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>Input validation</td><td>Pydantic schemas on every request body; SQLAlchemy bound parameters only (no raw string SQL)</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>Output escaping</td><td>React&rsquo;s default escaping; no raw HTML rendering of untrusted content</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>Upload validation</td><td>Extension allowlist, magic-byte signature check, size limit, UTF-8 validation, rejection of PDFs carrying JavaScript/Launch actions, duplicate-hash detection</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>Prompt-injection defence</td><td>Instruction-like text in queries and ingested documents is detected, down-ranked, labelled, excluded from key points, and the generation prompt explicitly forbids following it</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>Rate limiting</td><td>Per-user, per-minute limits on chat/search/ingest/report/login endpoints</td><td><span class="chip chip-partial">Partial</span> — in-process only, not distributed; would not hold a limit correctly across multiple server instances</td></tr>
+<tr><td>Security headers</td><td><code>X-Content-Type-Options</code>, <code>X-Frame-Options: DENY</code>, <code>Referrer-Policy</code>, <code>Content-Security-Policy</code> (non-docs routes), <code>Cache-Control: no-store</code> by default</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>CORS</td><td>Restricted to configured origins (not wildcard)</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>Secrets handling</td><td>Loaded from <code>.env</code>, never committed; admin settings view masks secret values</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>Audit logging</td><td>Append-only <code>audit_logs</code> table; requester IP stored only as a salted hash, never raw</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>Dependency / SAST scanning, secret scanning in CI</td><td>&mdash;</td><td><span class="chip chip-notimpl">Not Implemented</span> — no CI pipeline exists to run one</td></tr>
+<tr><td>Penetration testing / third-party security audit</td><td>&mdash;</td><td><span class="chip chip-notmeasured">Not Measured</span> — none performed; no security certification of any kind is held or claimed</td></tr>
+</tbody>
+</table>
+</div>
+
+<!-- 29. Privacy -->
+<div class="section" id="sec-privacy">
+<h2><span class="snum">29</span>Privacy &amp; Confidentiality</h2>
+<p>Workspaces can be marked confidential; questions originating from a confidential workspace are redacted in admin-facing monitoring views (RAG monitoring, citation monitoring) rather than shown in full. Innovation data, conversations, uploaded documents and search history are scoped to the owning workspace and are not visible across workspaces except through the admin console (itself gated by a separate session, §27). A dedicated <code>/api/privacy</code> endpoint and <code>/app/privacy</code> page state the retention policy, what data is sent to the configured LLM provider, and the upload notice shown before any file leaves the browser. Retention purge is implemented as an admin-triggered (and dry-run-able) job, not a scheduled background process. Status: <span class="chip chip-implemented">Implemented</span> for the mechanisms described; <span class="chip chip-notmeasured">Not Measured</span> for any formal data-protection compliance certification (none is claimed).</p>
+</div>
+
+<!-- 30. Admin architecture -->
+<div class="section" id="sec-admin-arch">
+<h2><span class="snum">30</span>Admin Architecture</h2>
+<table class="tbl-compact">
+<thead><tr><th>Area</th><th>Capability</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td>Users</td><td>Search, activate/deactivate, change role (self-lockout and last-admin-standing guards in place)</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>Workspaces</td><td>List all workspaces with member/innovation counts</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>Source registry</td><td>Register/edit/disable sources, set authority tier and jurisdiction</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>Documents</td><td>Cross-workspace search, ingest, review (mark checked/approve/reject/restore/mark superseded), re-index</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>RAG monitoring</td><td>Query counts, abstention/failed-retrieval rates, latency percentiles, breakdowns by type/status/mode/intent/<b>jurisdiction</b>, recent system errors</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>Citation monitoring</td><td>Support-status/claim-type/<b>jurisdiction</b> breakdowns, recent verification failures with entailment scores</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>Evaluation</td><td>Runs the seeded evaluation question set against the live pipeline on demand; shows the latest run and history</td><td><span class="chip chip-implemented">Implemented</span> mechanism; see §36 for what it does <i>not</i> measure</td></tr>
+<tr><td>Escalations</td><td>Cross-workspace list, reviewer assignment, status/notes</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>Feedback</td><td>Cross-workspace reported-issue queue with answer snapshot</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>Audit logs</td><td>Filterable by category/action/user/entity/date; CSV export</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>Settings</td><td>Read-only effective configuration view, secrets masked</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>Retention</td><td>Policy-driven purge, dry-run supported</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+</tbody>
+</table>
+</div>
+
+<!-- 31. User workflow -->
+<div class="section" id="sec-user-flow">
+<h2><span class="snum">31</span>User Workflow</h2>
+<div class="figure nobreak">
+<pre class="mermaid">
+flowchart LR
+ LAND[Landing + Jurisdiction] --> AUTH[Login / Register]
+ AUTH --> DASH["Dashboard<br/>(active jurisdiction shown)"]
+ DASH --> PROF["Innovation Profile"]
+ PROF --> QRY["AI Research Assistant"]
+ QRY --> RET[Retrieval + Verification]
+ RET --> EV[Evidence Cards]
+ EV --> PAT["Patent / Prior-Art"]
+ EV --> SCI["Scientific Evidence"]
+ EV --> REG["Regulatory Intelligence"]
+ PAT --> CITE[Citation Verification]
+ SCI --> CITE
+ REG --> CITE
+ CITE --> RPT[Evidence Report]
+ CITE --> ESC["Human Escalation<br/>(if needed)"]
+</pre>
+<figcaption>Figure 31.1 — Implemented end-to-end user journey. Every step shown is reachable in the running application with no placeholder screens.</figcaption>
+</div>
+</div>
+
+<!-- 32. Admin workflow -->
+<div class="section" id="sec-admin-flow">
+<h2><span class="snum">32</span>Admin Workflow</h2>
+<p class="flow-text">Admin login (separate URL/session) → Dashboard (system health, corpus size, recent errors)
+  → Source Registry (register/curate sources)
+  → Documents (ingest → review → approve/reject → re-index)
+  → RAG / Citation Monitoring (spot failure patterns, by jurisdiction)
+  → Evaluation (run the gold question set, inspect results)
+  → Escalations (assign reviewers, track resolution)
+  → Feedback (triage reported issues)
+  → Audit Logs (investigate an action, export for records)</p>
+</div>
+
+<!-- 33. AI/LLM architecture -->
+<div class="section" id="sec-ai-arch">
+<h2><span class="snum">33</span>AI / LLM Architecture</h2>
+<p>An <code>LLMProvider</code> abstract base class is implemented once (<code>OpenAICompatibleProvider</code>) and parameterised per provider: <code>ollama</code> (local, free, private — the default in this deployment&rsquo;s <code>.env</code>), <code>gemini</code>, <code>groq</code>, <code>grok</code>, <code>openai</code>, <code>deepseek</code>, plus a <code>mock</code> fallback (the default in the committed <code>.env.example</code>, i.e. a fresh checkout with no key configured runs in extractive-only mode by default). There is no agent framework, no tool-calling/function-calling orchestration, and no multi-agent system — the LLM is called directly for two purposes: answer generation (constrained to the assembled retrieved context) and, when configured, a capped claim-entailment check (at most 3 LLM calls per answer, for cost/latency control). System prompts explicitly instruct the model to answer only from the provided context, to never follow instruction-like text found inside retrieved content, and to mark uncertainty rather than invent specifics. If the configured provider fails at runtime, the system falls back to extractive mode automatically and states so in the answer rather than erroring out.</p>
+<table class="tbl-compact">
+<thead><tr><th>Capability</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td>Multi-provider abstraction with automatic extractive fallback</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>Configurable temperature/model per provider</td><td><span class="chip chip-implemented">Implemented</span> (via environment configuration)</td></tr>
+<tr><td>Structured-output / JSON-mode enforcement from the LLM</td><td><span class="chip chip-partial">Partial</span> — the system does not rely on provider-native structured output; it parses/validates free text and discards anything that doesn&rsquo;t fit an allowed verdict set</td></tr>
+<tr><td>Tool/function calling, autonomous agents</td><td><span class="chip chip-notimpl">Not Implemented</span></td></tr>
+<tr><td>Model fine-tuning</td><td><span class="chip chip-notimpl">Not Implemented</span> — only off-the-shelf provider models are used</td></tr>
+</tbody>
+</table>
+</div>
+
+<!-- 34. Additional AI components -->
+<div class="section" id="sec-ai-extra">
+<h2><span class="snum">34</span>AI / RAG Additional Components</h2>
+<table class="tbl-compact">
+<thead><tr><th>Component</th><th>Classification</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td>Query expansion via terminology engine</td><td>Required/Supporting for PS-045 retrieval quality</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>Deterministic (non-ML) reranking</td><td>Supporting</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>Citation/entailment verification</td><td>Required for PS-045&rsquo;s evidence-grounding goal</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>Evidence/gap scoring, risk-map aggregation</td><td>Additional</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>Hallucinated-translation guard (rejects implausible/invented legal-instrument translations)</td><td>Additional, added after an observed failure</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>Evidence-report generation (structured + Markdown)</td><td>Additional</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>Cross-encoder or learned reranker</td><td>&mdash;</td><td><span class="chip chip-notimpl">Not Implemented</span></td></tr>
+<tr><td>Semantic (trained) embeddings as the default</td><td>&mdash;</td><td><span class="chip chip-notimpl">Not the default</span> — available as an alternate configuration (OpenAI/bge_m3), but the shipped default is offline hashing</td></tr>
+</tbody>
+</table>
+</div>
+
+<!-- 35. Testing -->
+<div class="section" id="sec-testing">
+<h2><span class="snum">35</span>Testing Strategy</h2>
+<p><b>69 automated backend tests</b> across 7 files, run with pytest against a dedicated, freshly migrated and seeded <code>ipsakti_test</code> database (not the development database). No frontend unit-test suite, no browser-automation regression suite committed to the repository, and no dedicated load-testing harness were found — frontend and live-flow verification in this project has so far been performed through manual live-browser sessions rather than a committed, repeatable test file.</p>
+<table class="tbl-compact">
+<thead><tr><th>File</th><th>Tests</th><th>Covers</th></tr></thead>
+<tbody>
+<tr><td><code>test_auth_security.py</code></td><td>15</td><td>Registration/login, password rules, session expiry, CSRF, workspace isolation, full admin/user access-rules matrix</td></tr>
+<tr><td><code>test_rag.py</code></td><td>16</td><td>Retrieval relevance, jurisdiction filtering/mismatch handling, citation verdicts, clarification/abstention/refusal flows, Hindi</td></tr>
+<tr><td><code>test_retrieval.py</code></td><td>10</td><td>Empty-query handling, no-result handling, PDF parsing/chunking, injection flagging</td></tr>
+<tr><td><code>test_governance.py</code></td><td>9</td><td>Coverage matrix honesty, provision mapping, retention, privacy, OCR, confidence heuristic disclosure</td></tr>
+<tr><td><code>test_jurisdiction_patents.py</code></td><td>9</td><td>Jurisdiction-scoped patent matching, admin analytics rollups, AU gap parity, upload jurisdiction validation</td></tr>
+<tr><td><code>test_llm_mode.py</code></td><td>7</td><td>Behaviour under a configured (fake) LLM provider vs. extractive mock mode</td></tr>
+<tr><td><code>test_integration_flow.py</code></td><td>3</td><td>The full user→workspace→innovation→profile→research→verify→patents→regulatory→gaps→escalation→report→audit journey</td></tr>
+</tbody>
+</table>
+<p class="small">All 69 tests pass as of this report (verified by executing <code>pytest -q</code> immediately before report preparation). This is a snapshot, not a continuously enforced gate — see §28, no CI pipeline runs this suite automatically on every change.</p>
+</div>
+
+<!-- 36. Evaluation -->
+<div class="section" id="sec-evaluation">
+<h2><span class="snum">36</span>Evaluation Framework</h2>
+<p>An evaluation harness exists (<code>services/evaluation.py</code>, <code>EvaluationQuestion</code>/<code>EvaluationRun</code> tables, <code>POST /api/admin/evaluations/run</code>): a seeded set of gold questions (with expected abstention/keywords/source titles per question) is run against the live pipeline, with baselines for comparison (BM25-only, always-answer, LLM-only-without-retrieval) and classification-agreement scoring. This is a genuine evaluation mechanism, not a mock — but its outputs are whatever the last admin-triggered run produced against the current small seed corpus; there is no continuously tracked, externally validated benchmark result to report.</p>
+<table class="tbl-compact">
+<thead><tr><th>Metric family</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td>Retrieval (Precision@K, Recall@K, MRR, NDCG)</td><td><span class="chip chip-notmeasured">Not Measured</span> as a tracked/published figure — the harness can compute agreement/accuracy against the gold set on a run-by-run basis, but no number is reported here since none is a stable, audited figure</td></tr>
+<tr><td>Generation (faithfulness, groundedness, citation correctness/completeness)</td><td><span class="chip chip-notmeasured">Not Measured</span> as a published figure, though citation verification (§23) produces a real per-claim verdict at run time</td></tr>
+<tr><td>System (latency, throughput, error rate)</td><td><span class="chip chip-notmeasured">Not Measured</span> — <code>GET /api/admin/metrics</code>, queried live for this report, returned <code>queries_sampled: 0</code> and null latency percentiles for the current window</td></tr>
+<tr><td>Safety (unsupported-claim rate, abstention quality)</td><td><span class="chip chip-notmeasured">Not Measured</span> as a tracked figure; mechanism exists and is unit-tested (§35) but no aggregate rate is published</td></tr>
+</tbody>
+</table>
+<div class="callout warn"><b>This section exists specifically to satisfy the report&rsquo;s factuality rule.</b> No precision, recall, F1, accuracy, or latency number appears anywhere else in this document, because none was available to verify at report time beyond the structural fact that the harness and its tables exist and run successfully.</div>
+</div>
+
+<!-- 37. Performance -->
+<div class="section" id="sec-performance">
+<h2><span class="snum">37</span>Performance &amp; Scalability</h2>
+<p>No load test, benchmark, or production traffic has been run against this deployment; the live <code>/api/admin/metrics</code> endpoint (queried for this report) reports zero sampled queries and null latency in its current window. Architecturally: retrieval and reranking run in-process inside the FastAPI worker (CPU-bound SQL queries, no external compute), embeddings default to an offline hashing scheme (no network call, effectively free but semantically weak), and background ingestion jobs run as FastAPI <code>BackgroundTasks</code> within the same process rather than a separate worker pool — appropriate for the current small corpus, but a self-acknowledged limitation for larger ingestion volume. Rate limiting is in-process, so correctness under multiple server instances is not guaranteed without a shared store. Status: <span class="chip chip-notmeasured">Not Measured</span> (no benchmark), architecture reviewed as <span class="chip chip-prototype">Prototype-scale</span>.</p>
+</div>
+
+<!-- 38. Deployment -->
+<div class="section" id="sec-deployment">
+<h2><span class="snum">38</span>Deployment Architecture</h2>
+<p>Local/single-machine deployment is fully scripted: Docker Compose brings up PostgreSQL (<code>pgvector/pgvector:pg16</code>); a backend Dockerfile and frontend Dockerfile exist for containerised builds; a one-command script (<code>scripts/start_all.sh</code>) additionally handles local Ollama startup/model preload, Alembic migration, seeding, and launching an ad-hoc public HTTPS tunnel (Cloudflare quick tunnel) for demonstration purposes. There is no committed Kubernetes manifest, no cloud infrastructure-as-code, no managed-database configuration, and no CI/CD pipeline of any kind. The demonstration public URL is explicitly ephemeral (tied to one machine staying powered on) and is not a production hosting arrangement. Status: <span class="chip chip-implemented">Implemented</span> for local/Docker deployment; <span class="chip chip-notimpl">Not Implemented</span> for any managed/cloud production deployment path.</p>
+</div>
+
+<!-- 39. Failure handling -->
+<div class="section" id="sec-failure">
+<h2><span class="snum">39</span>Failure Handling</h2>
+<table class="tbl-compact">
+<thead><tr><th>Failure</th><th>Handling</th></tr></thead>
+<tbody>
+<tr><td>LLM provider failure/timeout</td><td>Falls back to extractive-only output; states the fallback explicitly in the answer</td></tr>
+<tr><td>Vector/full-text search failure</td><td>Propagates as a structured error via the standard envelope; no silent empty result is presented as &ldquo;no evidence&rdquo;</td></tr>
+<tr><td>Source/document unavailable or rejected</td><td>Ingestion job marked <code>FAILED</code> with a recorded error step, visible to admins</td></tr>
+<tr><td>Invalid upload (bad type, oversized, malicious PDF)</td><td>Rejected at validation, before parsing</td></tr>
+<tr><td>Invalid input generally</td><td>Pydantic validation error, HTTP 422, structured error envelope</td></tr>
+<tr><td>Missing citation / unverifiable claim</td><td>Sentence dropped from final answer, reported under <code>limitations</code></td></tr>
+<tr><td>Insufficient evidence</td><td>Explicit abstention, not a best-effort guess</td></tr>
+<tr><td>Authentication failure</td><td>401/403 distinguished (no session vs. wrong scope/role), never a generic 500</td></tr>
+<tr><td>Unhandled server exception</td><td>Centralised handler returns the standard error envelope; stack traces are never returned to the client</td></tr>
+</tbody>
+</table>
+</div>
+
+<!-- ============================== PART V ============================== -->
+<!-- 40. Complete feature inventory -->
+<div class="section part-start" id="sec-feature-inv">
+<h2><span class="snum">40</span>Complete Feature Inventory</h2>
+<table class="tbl-compact">
+<thead><tr><th>Feature</th><th>Category</th><th>Status</th><th>Evidence</th></tr></thead>
+<tbody>
+<tr><td>User auth (register/login/logout/sessions)</td><td>Supporting</td><td><span class="chip chip-implemented">Implemented</span></td><td><code>api/endpoints/auth.py</code></td></tr>
+<tr><td>Separate admin console (own session/login/RBAC gate)</td><td>Additional</td><td><span class="chip chip-implemented">Implemented</span></td><td><code>admin_console.py</code>, <code>lib/admin.tsx</code></td></tr>
+<tr><td>Workspace RBAC (5 roles)</td><td>Supporting</td><td><span class="chip chip-implemented">Implemented</span></td><td><code>models/orm.py::WorkspaceRole</code></td></tr>
+<tr><td>Innovation profiler wizard</td><td>PS-045 Required</td><td><span class="chip chip-implemented">Implemented</span></td><td><code>innovations/new/page.tsx</code></td></tr>
+<tr><td>Terminology engine (ambiguity-aware)</td><td>PS-045 Required</td><td><span class="chip chip-implemented">Implemented</span></td><td><code>services/terminology.py</code></td></tr>
+<tr><td>Hybrid retrieval (dense+lexical+metadata+graph)</td><td>PS-045 Required</td><td><span class="chip chip-implemented">Implemented</span></td><td><code>services/retrieval.py</code></td></tr>
+<tr><td>Deterministic reranking</td><td>Supporting</td><td><span class="chip chip-implemented">Implemented</span></td><td><code>retrieval.py</code></td></tr>
+<tr><td>AI Research Assistant chat</td><td>PS-045 Required</td><td><span class="chip chip-implemented">Implemented</span></td><td><code>api/endpoints/chat.py</code></td></tr>
+<tr><td>Citation verification (10-point)</td><td>PS-045 Required</td><td><span class="chip chip-implemented">Implemented</span></td><td><code>services/verification.py</code></td></tr>
+<tr><td>Patent/prior-art matching (jurisdiction-scoped)</td><td>PS-045 Required</td><td><span class="chip chip-implemented">Implemented</span></td><td><code>services/patents.py</code></td></tr>
+<tr><td>Scientific evidence (ingredient vs. formulation)</td><td>PS-045 Required</td><td><span class="chip chip-implemented">Implemented</span></td><td><code>services/analysis.py</code></td></tr>
+<tr><td>Traditional knowledge context</td><td>PS-045 Required</td><td><span class="chip chip-partial">Partial</span> (thin corpus)</td><td>§18</td></tr>
+<tr><td>Regulatory classification (IN/US/AU)</td><td>PS-045 Required</td><td><span class="chip chip-implemented">Implemented</span></td><td><code>services/regulatory.py</code></td></tr>
+<tr><td>Jurisdiction engine (selection→retrieval→patents→gaps)</td><td>PS-045 Required</td><td><span class="chip chip-implemented">Implemented</span></td><td>§21</td></tr>
+<tr><td>Evidence gaps + risk map</td><td>PS-045 Required</td><td><span class="chip chip-implemented">Implemented</span></td><td><code>compute_gaps()</code>, <code>risk_map()</code></td></tr>
+<tr><td>Evidence graph (interactive)</td><td>Additional</td><td><span class="chip chip-implemented">Implemented</span></td><td><code>innovations/[id]/graph</code></td></tr>
+<tr><td>Human escalation workflow</td><td>PS-045 Required</td><td><span class="chip chip-implemented">Implemented</span></td><td><code>services/packets.py</code></td></tr>
+<tr><td>Evidence report generation (+Markdown export)</td><td>Additional</td><td><span class="chip chip-implemented">Implemented</span></td><td><code>app/reports</code></td></tr>
+<tr><td>Coverage matrix (jurisdiction×domain, computed/honest)</td><td>Additional</td><td><span class="chip chip-implemented">Implemented</span></td><td><code>services/governance.py</code></td></tr>
+<tr><td>Feedback queue (report wrong answer)</td><td>Additional</td><td><span class="chip chip-implemented">Implemented</span></td><td><code>api/endpoints/review.py</code></td></tr>
+<tr><td>Audit trail + CSV export</td><td>Supporting</td><td><span class="chip chip-implemented">Implemented</span></td><td><code>AuditLog</code></td></tr>
+<tr><td>Multi-provider LLM abstraction + extractive fallback</td><td>Additional</td><td><span class="chip chip-implemented">Implemented</span></td><td><code>services/llm.py</code></td></tr>
+<tr><td>Multilingual UI (EN/HI)</td><td>PS-045 Required</td><td><span class="chip chip-implemented">Implemented</span></td><td><code>lib/i18n.ts</code></td></tr>
+<tr><td>Prompt-injection detection (query + document)</td><td>Additional</td><td><span class="chip chip-implemented">Implemented</span></td><td><code>query_understanding.py</code></td></tr>
+<tr><td>Document ingestion + OCR</td><td>Supporting</td><td><span class="chip chip-implemented">Implemented</span></td><td><code>services/ingestion.py</code></td></tr>
+<tr><td>Automated test suite (69 tests)</td><td>Additional</td><td><span class="chip chip-implemented">Implemented</span></td><td>§35</td></tr>
+<tr><td>RAG/citation admin monitoring (incl. by-jurisdiction)</td><td>Additional</td><td><span class="chip chip-implemented">Implemented</span></td><td>§30</td></tr>
+<tr><td>Evaluation harness</td><td>Additional</td><td><span class="chip chip-implemented">Implemented</span> mechanism</td><td>§36</td></tr>
+<tr><td>Trained semantic embeddings as default</td><td>Supporting</td><td><span class="chip chip-notimpl">Not default</span></td><td>§8, §37</td></tr>
+<tr><td>TKDL integration</td><td>&mdash;</td><td><span class="chip chip-notimpl">Not Implemented (by design)</span></td><td>§15, §18</td></tr>
+<tr><td>CI/CD pipeline</td><td>&mdash;</td><td><span class="chip chip-notimpl">Not Implemented</span></td><td>§8, §28</td></tr>
+<tr><td>Cloud/production deployment</td><td>&mdash;</td><td><span class="chip chip-notimpl">Not Implemented</span></td><td>§38</td></tr>
+<tr><td>Published performance/accuracy benchmarks</td><td>&mdash;</td><td><span class="chip chip-notmeasured">Not Measured</span></td><td>§36, §37</td></tr>
+<tr><td>Frontend automated test suite</td><td>&mdash;</td><td><span class="chip chip-notimpl">Not Implemented</span></td><td>§35</td></tr>
+</tbody>
+</table>
+</div>
+
+<!-- 41. Additional implementations -->
+<div class="section" id="sec-additional">
+<h2><span class="snum">41</span>Additional Implementations Beyond PS-045</h2>
+<p>PS-045, as a domain problem statement, describes <i>what</i> the assistant must reason about (Ayurveda IP, TK, scientific evidence, regulation, jurisdictions, multilingual interaction, citation verification, evidence gaps, escalation, auditability). It does not itself mandate the specific engineering apparatus below; these were added by the implementation to make the required capabilities trustworthy and operable, and are documented explicitly rather than folded silently into &ldquo;PS-045 required.&rdquo;</p>
+<table class="tbl-compact">
+<thead><tr><th>Feature</th><th>Why it exists</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td>Fully separate Admin Console (own login/session/RBAC, re-checked every request)</td><td>A domain-correctness feature (jurisdiction-aware RAG) is only trustworthy if the corpus feeding it is curated and monitored by someone whose access is itself provably isolated from ordinary users</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>RAG &amp; citation quality monitoring dashboards, including jurisdiction breakdowns</td><td>Without visibility into retrieval failures and citation failures, evidence-grounding claims would be unverifiable in production, not just in a demo</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>Coverage matrix (what is actually ingested, per jurisdiction × domain, Built/Partial/Planned/N/A)</td><td>Directly prevents the system from implying jurisdiction support it does not have</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>69-test automated suite covering security, retrieval, citation, jurisdiction and the full user journey</td><td>Evidence-grounding and access-isolation claims need regression protection, not just initial correctness</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>Prompt-injection detection in both queries and ingested documents</td><td>A RAG system that treats retrieved text as instructions is unsafe by construction; this is closed explicitly</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>Multi-provider LLM abstraction with automatic extractive fallback</td><td>Lets the system run (in extractive mode) with zero API cost and no external dependency, rather than requiring a paid key to function at all</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>Document review/supersession workflow (approve/reject/restore/mark superseded)</td><td>A corpus that can only grow, never be corrected, degrades trust over time</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>Feedback queue for user-reported wrong answers/citations</td><td>A closed loop for catching verification misses that automated tests don&rsquo;t cover</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>Evidence graph visualisation</td><td>Makes the provenance chain (feature→evidence→regulation→jurisdiction) inspectable, not just asserted in text</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+</tbody>
+</table>
+</div>
+
+<!-- 42. Complete DB inventory -->
+<div class="section" id="sec-db-inv">
+<h2><span class="snum">42</span>Complete Database Inventory</h2>
+<p>29 tables, all in one PostgreSQL schema (<code>backend/app/models/orm.py</code>). Full table-by-table detail:</p>
+<table class="tbl-compact">
+<thead><tr><th>#</th><th>Table</th><th>Purpose</th><th>Key relationships</th></tr></thead>
+<tbody>
+<tr><td>1</td><td><code>users</code></td><td>Account/identity</td><td>Referenced by nearly every other table via created_by/user_id</td></tr>
+<tr><td>2</td><td><code>organizations</code></td><td>Tenant grouping that owns workspaces</td><td>1:N <code>workspaces</code></td></tr>
+<tr><td>3</td><td><code>workspaces</code></td><td>Main tenancy/collaboration unit</td><td>1:N <code>workspace_members</code>, <code>innovations</code>, <code>conversations</code></td></tr>
+<tr><td>4</td><td><code>workspace_members</code></td><td>User↔workspace role join</td><td>unique(workspace_id,user_id)</td></tr>
+<tr><td>5</td><td><code>innovations</code></td><td>The central research subject</td><td>1:1 <code>innovation_profiles</code>; 1:N <code>innovation_features</code></td></tr>
+<tr><td>6</td><td><code>innovation_profiles</code></td><td>Structured extraction of composition/use/claims</td><td>unique innovation_id</td></tr>
+<tr><td>7</td><td><code>innovation_features</code></td><td>Typed, discrete feature items (drives patent matching)</td><td>FK innovation_id</td></tr>
+<tr><td>8</td><td><code>terms</code></td><td>Multilingual terminology/ontology lookup</td><td>standalone</td></tr>
+<tr><td>9</td><td><code>sources</code></td><td>Registry of external authorities/publishers</td><td>1:N <code>documents</code></td></tr>
+<tr><td>10</td><td><code>documents</code></td><td>Ingested document record</td><td>1:N <code>document_chunks</code>; self-FK supersedes/superseded_by</td></tr>
+<tr><td>11</td><td><code>document_chunks</code></td><td>Chunk-level text + embedding + tsvector</td><td>pgvector HNSW index; GIN tsvector index</td></tr>
+<tr><td>12</td><td><code>patents</code></td><td>Structured patent record (1:1 with a PATENT document)</td><td>unique document_id</td></tr>
+<tr><td>13</td><td><code>scientific_studies</code></td><td>Structured study record (1:1 with a STUDY document)</td><td>unique document_id</td></tr>
+<tr><td>14</td><td><code>regulatory_pathways</code></td><td>Per-jurisdiction regulatory framework/requirements</td><td>FK source_document_id</td></tr>
+<tr><td>15</td><td><code>conversations</code></td><td>Chat thread, optionally tied to an innovation</td><td>1:N <code>messages</code></td></tr>
+<tr><td>16</td><td><code>messages</code></td><td>Single chat turn + structured answer payload</td><td>FK conversation_id</td></tr>
+<tr><td>17</td><td><code>retrieval_results</code></td><td>Per-chunk retrieval trace</td><td>FK conversation_id, message_id, document_id, chunk_id</td></tr>
+<tr><td>18</td><td><code>evidence</code></td><td>Passage linked to an innovation as supporting evidence</td><td>unique(innovation_id,chunk_id,evidence_type)</td></tr>
+<tr><td>19</td><td><code>claims</code></td><td>Extracted claim with risk/support classification</td><td>FK message_id, innovation_id</td></tr>
+<tr><td>20</td><td><code>claim_evidence</code></td><td>Claim↔chunk verification link + entailment score</td><td>FK claim_id</td></tr>
+<tr><td>21</td><td><code>patent_feature_matches</code></td><td>Feature↔patent prior-art match</td><td>unique(innovation_feature_id,patent_id)</td></tr>
+<tr><td>22</td><td><code>evidence_gaps</code></td><td>Missing-evidence category/risk</td><td>FK innovation_id</td></tr>
+<tr><td>23</td><td><code>escalations</code></td><td>Human-review packet + status workflow</td><td>FK innovation_id, assigned_to</td></tr>
+<tr><td>24</td><td><code>reports</code></td><td>Generated evidence report (JSON + Markdown)</td><td>FK innovation_id</td></tr>
+<tr><td>25</td><td><code>ingestion_jobs</code></td><td>Ingestion pipeline run tracking</td><td>FK source_id, document_id</td></tr>
+<tr><td>26</td><td><code>evaluation_questions</code></td><td>Gold-standard evaluation question</td><td>unique key</td></tr>
+<tr><td>27</td><td><code>evaluation_runs</code></td><td>Recorded evaluation-suite run + metrics</td><td>standalone</td></tr>
+<tr><td>28</td><td><code>feedback</code></td><td>User-reported issue + review workflow</td><td>FK message_id, innovation_id</td></tr>
+<tr><td>29</td><td><code>audit_logs</code></td><td>Append-only action audit trail</td><td>FK user_id (indexed), action (indexed)</td></tr>
+</tbody>
+</table>
+<p class="small">10 application-level enums (VARCHAR-backed, not native Postgres enum types): <code>UserRole</code>, <code>WorkspaceRole</code>, <code>Confidentiality</code>, <code>InnovationStatus</code>, <code>FeatureType</code>, <code>RetrievalMethod</code>, <code>SupportStatus</code>, <code>Severity</code>, <code>EscalationStatus</code>, <code>EscalationType</code>. 4 Alembic migrations exist.</p>
+</div>
+
+<!-- 43. Complete API inventory -->
+<div class="section" id="sec-api-inv">
+<h2><span class="snum">43</span>Complete API Inventory</h2>
+<p>108 distinct route definitions, 112 registrations counting the health router&rsquo;s dual mount. All under <code>/api</code> unless noted.</p>
+<table class="tbl-compact">
+<thead><tr><th>Method</th><th>Path</th><th>Purpose</th><th>Auth</th></tr></thead>
+<tbody>
+<tr><td colspan="4"><b>auth.py (10)</b></td></tr>
+<tr><td>POST</td><td>/auth/register</td><td>Create account + personal workspace</td><td>None</td></tr>
+<tr><td>POST</td><td>/auth/login</td><td>App sign-in</td><td>None (throttled)</td></tr>
+<tr><td>POST</td><td>/auth/logout</td><td>App sign-out</td><td>User</td></tr>
+<tr><td>GET</td><td>/auth/session</td><td>Session state (never 401)</td><td>None</td></tr>
+<tr><td>GET</td><td>/auth/me</td><td>Current user + workspaces</td><td>User</td></tr>
+<tr><td>PATCH</td><td>/auth/me</td><td>Update own profile</td><td>User</td></tr>
+<tr><td>POST</td><td>/auth/change-password</td><td>Change own password</td><td>User</td></tr>
+<tr><td>POST</td><td>/auth/admin/login</td><td>Admin console sign-in</td><td>None (role=ADMIN required)</td></tr>
+<tr><td>POST</td><td>/auth/admin/logout</td><td>Admin console sign-out</td><td>None</td></tr>
+<tr><td>GET</td><td>/auth/admin/session</td><td>Admin session state (never 401)</td><td>None</td></tr>
+<tr><td colspan="4"><b>workspaces.py (5)</b></td></tr>
+<tr><td>GET</td><td>/workspaces</td><td>List own workspaces</td><td>User</td></tr>
+<tr><td>POST</td><td>/workspaces</td><td>Create workspace</td><td>User</td></tr>
+<tr><td>GET</td><td>/workspaces/{id}</td><td>Workspace detail</td><td>User (member)</td></tr>
+<tr><td>PATCH</td><td>/workspaces/{id}</td><td>Update workspace settings</td><td>Workspace ADMIN</td></tr>
+<tr><td>POST</td><td>/workspaces/{id}/members</td><td>Add a member</td><td>Workspace ADMIN</td></tr>
+<tr><td colspan="4"><b>innovations.py (24)</b></td></tr>
+<tr><td>GET/POST</td><td>/innovations</td><td>List / create</td><td>User / Workspace RESEARCHER</td></tr>
+<tr><td>GET/PATCH/DELETE</td><td>/innovations/{id}</td><td>Detail / update / delete</td><td>User / RESEARCHER / Workspace ADMIN</td></tr>
+<tr><td>POST</td><td>/innovations/{id}/profile/generate</td><td>Generate structured profile</td><td>Workspace RESEARCHER</td></tr>
+<tr><td>PATCH</td><td>/innovations/{id}/profile</td><td>Edit/confirm profile</td><td>Workspace RESEARCHER</td></tr>
+<tr><td>POST</td><td>/innovations/{id}/analyze</td><td>Run evidence/patent/classification/gap analysis</td><td>Workspace RESEARCHER</td></tr>
+<tr><td>GET/POST</td><td>/innovations/{id}/evidence</td><td>List / add evidence</td><td>User / RESEARCHER</td></tr>
+<tr><td>GET</td><td>/innovations/{id}/scientific</td><td>Scientific evidence cards</td><td>User</td></tr>
+<tr><td>GET</td><td>/innovations/{id}/tk</td><td>TK context</td><td>User</td></tr>
+<tr><td>GET</td><td>/innovations/{id}/patents</td><td>Patent matrix + concepts</td><td>User</td></tr>
+<tr><td>PATCH</td><td>/innovations/{id}/patents/matches/{mid}</td><td>Review a patent match</td><td>Workspace REVIEWER</td></tr>
+<tr><td>GET/PATCH</td><td>/innovations/{id}/evidence-gaps(/{gid})</td><td>List / update gap</td><td>User / RESEARCHER</td></tr>
+<tr><td>GET</td><td>/innovations/{id}/risk-map</td><td>Risk map</td><td>User</td></tr>
+<tr><td>GET</td><td>/innovations/{id}/graph</td><td>Evidence graph</td><td>User</td></tr>
+<tr><td>GET/POST</td><td>/innovations/{id}/classification</td><td>Get / run classification</td><td>User / RESEARCHER</td></tr>
+<tr><td>GET</td><td>/innovations/{id}/regulatory</td><td>Passport + comparison</td><td>User</td></tr>
+<tr><td>GET</td><td>/innovations/{id}/workspace</td><td>Owning workspace (hidden from schema)</td><td>User</td></tr>
+<tr><td>GET</td><td>/innovations/{id}/summary</td><td>Structured summary</td><td>User</td></tr>
+<tr><td>GET</td><td>/innovations/{id}/provisions</td><td>Provision relevance flags</td><td>User</td></tr>
+<tr><td colspan="4"><b>chat.py (6)</b></td></tr>
+<tr><td>POST</td><td>/chat</td><td>Ask AI Research Assistant</td><td>User (rate-limited)</td></tr>
+<tr><td>GET</td><td>/conversations(/{id})(/messages)</td><td>List/get conversation(s)/messages</td><td>User (own)</td></tr>
+<tr><td>DELETE</td><td>/conversations/{id}</td><td>Delete conversation</td><td>User (own)</td></tr>
+<tr><td>PATCH</td><td>/messages/{id}</td><td>Set feedback/flag</td><td>User (own)</td></tr>
+<tr><td colspan="4"><b>search.py (8)</b></td></tr>
+<tr><td>POST</td><td>/search(/patents)(/scientific)(/regulatory)</td><td>Domain-scoped search</td><td>User (rate-limited)</td></tr>
+<tr><td>POST</td><td>/citations/verify</td><td>Verify a claim against a passage</td><td>User</td></tr>
+<tr><td>GET</td><td>/classification/questions</td><td>Classification question set</td><td>User</td></tr>
+<tr><td>POST</td><td>/classification/analyze</td><td>Provisional classification</td><td>User (RESEARCHER if tied to an innovation)</td></tr>
+<tr><td>GET</td><td>/regulatory/{jurisdiction}</td><td>Regulatory overview for IN/US/AU</td><td>User</td></tr>
+<tr><td colspan="4"><b>review.py (12)</b></td></tr>
+<tr><td>GET/POST</td><td>/escalations(/{id})</td><td>List/create/get/update escalation</td><td>User / RESEARCHER / REVIEWER</td></tr>
+<tr><td>GET/POST</td><td>/reports(/{id})(/markdown)</td><td>List/create/get report</td><td>User / RESEARCHER</td></tr>
+<tr><td>GET</td><td>/audit</td><td>Workspace audit trail</td><td>User</td></tr>
+<tr><td>GET/POST/PATCH</td><td>/feedback(/{id})</td><td>List/create/review feedback</td><td>User / REVIEWER</td></tr>
+<tr><td colspan="4"><b>corpus.py (9)</b></td></tr>
+<tr><td>GET</td><td>/sources</td><td>Source registry</td><td>User</td></tr>
+<tr><td>GET/POST</td><td>/documents(/{id})</td><td>List/upload/get documents</td><td>User / RESEARCHER</td></tr>
+<tr><td>GET</td><td>/uploads/notice</td><td>Privacy notice before upload</td><td>User</td></tr>
+<tr><td>GET</td><td>/ingestion-jobs(/{id})</td><td>Ingestion job status</td><td>User</td></tr>
+<tr><td>GET</td><td>/coverage</td><td>Jurisdiction×domain coverage matrix</td><td>User</td></tr>
+<tr><td>GET</td><td>/privacy</td><td>Data handling policy</td><td>User</td></tr>
+<tr><td colspan="4"><b>dashboard.py (1)</b></td></tr>
+<tr><td>GET</td><td>/dashboard</td><td>Workspace dashboard metrics</td><td>User</td></tr>
+<tr><td colspan="4"><b>admin_console.py (28) — every route additionally requires an admin session</b></td></tr>
+<tr><td>GET</td><td>/admin/overview, /admin/metrics, /admin/settings</td><td>System dashboard, metrics, effective config</td><td>Admin</td></tr>
+<tr><td>POST</td><td>/admin/retention/run</td><td>Apply retention policy</td><td>Admin</td></tr>
+<tr><td>GET/PATCH</td><td>/admin/users(/{id})</td><td>List / update users</td><td>Admin</td></tr>
+<tr><td>GET</td><td>/admin/workspaces</td><td>List all workspaces</td><td>Admin</td></tr>
+<tr><td>GET/POST/PATCH</td><td>/admin/sources(/{id})</td><td>List/register/edit sources</td><td>Admin</td></tr>
+<tr><td>GET</td><td>/admin/documents(/{id})</td><td>Cross-workspace document view</td><td>Admin</td></tr>
+<tr><td>POST</td><td>/admin/documents/ingest</td><td>Ingest an official document</td><td>Admin</td></tr>
+<tr><td>PATCH</td><td>/admin/documents/{id}/review</td><td>Review/reject/restore/supersede</td><td>Admin</td></tr>
+<tr><td>POST</td><td>/admin/documents/{id}/reindex</td><td>Re-embed document chunks</td><td>Admin</td></tr>
+<tr><td>GET</td><td>/admin/ingestion-jobs, /admin/update-queue</td><td>Job list, stale-document queue</td><td>Admin</td></tr>
+<tr><td>GET</td><td>/admin/rag, /admin/citations</td><td>RAG &amp; citation monitoring</td><td>Admin</td></tr>
+<tr><td>GET/POST</td><td>/admin/escalations(/{id})</td><td>List/get/assign escalations</td><td>Admin</td></tr>
+<tr><td>GET/PATCH</td><td>/admin/feedback(/{id})</td><td>List/review feedback</td><td>Admin</td></tr>
+<tr><td>GET</td><td>/admin/audit-logs(/export)</td><td>Query / export audit log</td><td>Admin</td></tr>
+<tr><td>GET/POST</td><td>/admin/evaluations(/run)</td><td>View / run evaluation suite</td><td>Admin</td></tr>
+<tr><td colspan="4"><b>health.py (4, mounted at both /health and /api/health)</b></td></tr>
+<tr><td>GET</td><td>/health(/database)(/vector)(/llm)</td><td>Liveness/readiness checks</td><td>None</td></tr>
+</tbody>
+</table>
+</div>
+
+<!-- 44. Frontend inventory -->
+<div class="section" id="sec-frontend-inv">
+<h2><span class="snum">44</span>Complete Frontend Inventory</h2>
+<p>55 distinct routes (see the page-count table in §9 for the breakdown by area). Shared component library: 23 primitives in <code>components/ui.tsx</code> (Button, Card, Badge family, Spinner, ProgressSteps, EmptyState, ErrorState, PageHeader, Stat, Tabs, Drawer, Field, Notice, Popover, ProfileMenu, date formatters), plus <code>evidence.tsx</code> (8 domain cards), <code>auth-form.tsx</code> (shared login/register/admin-login form), <code>innovation-card.tsx</code>, <code>back.tsx</code> (navigation-history back button), <code>markdown.tsx</code>. State/lib layer: <code>lib/api.ts</code> (fetch wrapper + session/workspace/jurisdiction persistence), <code>lib/providers.tsx</code> (app-wide context), <code>lib/admin.tsx</code> (separate admin-session context), <code>lib/i18n.ts</code> (EN/HI dictionaries), <code>lib/types.ts</code>, <code>lib/hooks.ts</code>. No Redux/Zustand/Zod — React Query + Context + <code>localStorage</code> only.</p>
+</div>
+
+<!-- 45. AI inventory -->
+<div class="section" id="sec-ai-inv">
+<h2><span class="snum">45</span>Complete AI Inventory</h2>
+<table class="tbl-compact">
+<thead><tr><th>Component</th><th>Technology</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td>Generation model (configurable)</td><td>Ollama / Gemini / Groq / Grok / OpenAI / DeepSeek / Mock</td><td><span class="chip chip-partial">Partial</span> — provider-dependent at deploy time</td></tr>
+<tr><td>Embedding model (configurable)</td><td>Hashing n-gram (default) / OpenAI text-embedding-3-small / bge_m3</td><td><span class="chip chip-partial">Partial</span> — default is not semantic</td></tr>
+<tr><td>Reranker</td><td>Deterministic weighted scoring (relevance/lexical/jurisdiction/authority/freshness/doc-type/feature-match)</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>Claim extraction</td><td>Rule-based segmentation + LLM entailment (capped 3/answer, if configured)</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>Citation verification</td><td>10-point deterministic check (§23)</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>Terminology/query expansion engine</td><td>Rule + lookup table (<code>Term</code> table)</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>Jurisdiction/intent/language detector</td><td>Rule-based (<code>query_understanding.py</code>)</td><td><span class="chip chip-implemented">Implemented</span></td></tr>
+<tr><td>Evaluation harness</td><td>Gold-question set + baselines (BM25-only, always-answer, no-retrieval)</td><td><span class="chip chip-implemented">Implemented</span> mechanism</td></tr>
+<tr><td>Agents / tool-calling / multi-agent orchestration</td><td>&mdash;</td><td><span class="chip chip-notimpl">Not Implemented</span></td></tr>
+</tbody>
+</table>
+</div>
+
+<!-- 46. PS-045 mapping -->
+<div class="section" id="sec-mapping">
+<h2><span class="snum">46</span>Original PS-045 vs. Current Implementation</h2>
+<table class="tbl-compact">
+<thead><tr><th>PS-045 Requirement</th><th>Actual Implementation</th><th>Status</th><th>Gap / Extension</th></tr></thead>
+<tbody>
+<tr><td>Evidence-grounded IP/regulatory assistance for Ayurveda</td><td>Full RAG pipeline + citation verification over a curated corpus</td><td><span class="chip chip-implemented">Implemented</span></td><td>Corpus is a small seed set (§15), not a production knowledge base</td></tr>
+<tr><td>Traditional knowledge context</td><td>TK-domain retrieval, access-level gating, NBA gap trigger</td><td><span class="chip chip-partial">Partial</span></td><td>No TKDL access by design; thin corpus</td></tr>
+<tr><td>Patent / prior-art intelligence</td><td>Feature-to-patent matching, jurisdiction-scoped, family grouping</td><td><span class="chip chip-implemented">Implemented</span></td><td>Only 7 fictional seed patents; never presents a patentability verdict</td></tr>
+<tr><td>Scientific evidence</td><td>Study cards, ingredient-vs-formulation separation enforced in code</td><td><span class="chip chip-implemented">Implemented</span></td><td>Only 6 seed studies, all ingredient-level</td></tr>
+<tr><td>Jurisdiction-specific regulatory pathways (IN/US/AU)</td><td>Per-jurisdiction classification, passport, comparison, gap triggers for all three</td><td><span class="chip chip-implemented">Implemented</span></td><td>None beyond corpus depth</td></tr>
+<tr><td>Multilingual (EN/HI)</td><td>Full UI translation + terminology-based Hindi retrieval</td><td><span class="chip chip-implemented">Implemented</span></td><td>LLM-based Hindi generation/translation is provider-dependent</td></tr>
+<tr><td>Citation verification</td><td>10-point deterministic check, answer rebuilt from verified sentences only</td><td><span class="chip chip-implemented">Implemented</span></td><td>None material</td></tr>
+<tr><td>Evidence gaps</td><td>Computed gaps with severity, incl. parity triggers for all three jurisdictions</td><td><span class="chip chip-implemented">Implemented</span></td><td>None material</td></tr>
+<tr><td>Human escalation</td><td>4 escalation types, full evidence packet, reviewer assignment</td><td><span class="chip chip-implemented">Implemented</span></td><td>None material</td></tr>
+<tr><td>Auditability</td><td>Append-only audit log, CSV export, hashed IPs</td><td><span class="chip chip-implemented">Implemented</span></td><td>None material</td></tr>
+<tr><td><i>(not explicit in PS-045)</i> Separate admin console + RBAC</td><td>Fully isolated session/RBAC, 28 admin routes</td><td><span class="chip chip-implemented">Implemented</span></td><td>Extension — see §41</td></tr>
+<tr><td><i>(not explicit in PS-045)</i> Automated test coverage</td><td>69 tests across security/RAG/jurisdiction/governance/integration</td><td><span class="chip chip-implemented">Implemented</span></td><td>Extension — see §41</td></tr>
+</tbody>
+</table>
+</div>
+
+<!-- 47. What was actually built -->
+<div class="section" id="sec-actually-built">
+<h2><span class="snum">47</span>What Has Actually Been Built</h2>
+<p><i>If the current repository is run today, what does the software actually provide?</i> A working, locally-deployable full-stack web application: a user can register, select a jurisdiction, describe an Ayurveda innovation in free text, receive a structured profile with flagged ambiguities, ask the AI Research Assistant jurisdiction-aware questions and receive citation-verified answers (or an honest abstention), see scientific evidence correctly separated by ingredient vs. formulation level, see a jurisdiction-scoped patent/prior-art matrix, get a provisional regulatory classification and passport across India/USA/Australia, see computed evidence gaps and a risk map, inspect an interactive evidence graph, generate an exportable evidence report, and raise a human escalation with a full packet. In parallel, an administrator — through a fully separate, server-enforced console — can curate the source/document corpus, monitor retrieval and citation quality (including per-jurisdiction), run the evaluation harness, manage users and workspaces, triage escalations and feedback, and audit every action. All of this is backed by a real Postgres database with 29 tables, 108 API routes, and is exercised by 69 passing automated tests. What it does <i>not</i> provide, as of this report: a production-scale verified corpus, published accuracy/latency benchmarks, a CI/CD pipeline, or a cloud deployment — these are stated plainly in §48.</p>
+</div>
+
+<!-- 48. Limitations -->
+<div class="section" id="sec-limitations">
+<h2><span class="snum">48</span>Limitations</h2>
+<ul class="two-col">
+<li>Corpus is a curated seed set: 39 documents, 13 sources, 81 chunks (30 real/9 demo-fictional) — not a production knowledge base</li>
+<li>Patent coverage is thin and uneven across jurisdictions (3 IN / 2 US / 1 AU / 1 EP), all fictional</li>
+<li>Scientific evidence is ingredient-level only (6 studies); no finished-formulation-level study exists in the corpus</li>
+<li>No TKDL or other restricted traditional-knowledge database access, by design</li>
+<li>Only 3 jurisdictions supported (India, USA, Australia); all others explicitly refused, not approximated</li>
+<li>Only 2 languages supported (English, Hindi); Hindi retrieval relies on terminology expansion, not a native Hindi corpus</li>
+<li>Default embeddings are offline hashing, not a trained semantic model (semantic embeddings are available but not the default)</li>
+<li>LLM generation is provider-dependent; with no provider configured, answers are extractive quotes, not synthesis</li>
+<li>No published precision/recall/latency benchmark; <code>queries_sampled: 0</code> in the live metrics endpoint at report time</li>
+<li>Rate limiting is in-process, not safe across multiple server instances</li>
+<li>Background jobs run inline in the request process, not on a dedicated worker queue</li>
+<li>No CI/CD pipeline; the 69-test suite is not automatically enforced on every change</li>
+<li>No frontend automated test suite or committed browser-regression suite</li>
+<li>No cloud/production deployment path (Docker Compose + a local-machine demo tunnel only)</li>
+<li>No third-party security audit or compliance certification held or claimed</li>
+</ul>
+</div>
+
+<!-- 49. Future roadmap -->
+<div class="section" id="sec-roadmap">
+<h2><span class="snum">49</span>Future Roadmap</h2>
+<p class="callout">The items below are proposals for future work. None are implemented today; they are listed separately from §40&ndash;§47 specifically so they are never mistaken for current capability.</p>
+<ul class="two-col">
+<li>Expand the verified document corpus, especially patent and formulation-level scientific coverage</li>
+<li>Add jurisdictions beyond India/USA/Australia with the same hard-isolation discipline already proven for the current three</li>
+<li>Move the default embedding provider to a trained semantic model and reseed</li>
+<li>Add a cross-encoder or learned reranking stage</li>
+<li>Integrate additional verified source feeds (patent office APIs, regulator publication feeds)</li>
+<li>Build a repeatable, published evaluation benchmark (retrieval + generation + safety metrics) run on a schedule, not only on demand</li>
+<li>Stand up a CI/CD pipeline running the existing 69-test suite (and a new frontend suite) on every change</li>
+<li>Move rate limiting and background ingestion to shared infrastructure (e.g. Redis, a worker queue) for multi-instance deployment</li>
+<li>Add a cloud deployment target with managed Postgres/pgvector and observability</li>
+<li>Commission an independent security review before handling real confidential innovation data at scale</li>
+</ul>
+</div>
+
+<!-- 50. Technical differentiation -->
+<div class="section" id="sec-diff">
+<h2><span class="snum">50</span>Technical Differentiation</h2>
+<table class="tbl-compact">
+<thead><tr><th>vs.</th><th>What this system does differently (as implemented, not aspirational)</th></tr></thead>
+<tbody>
+<tr><td>Generic LLM chatbot</td><td>Answers are rebuilt from only the sentences that pass citation verification; an unsupported sentence is dropped, not shown with a caveat</td></tr>
+<tr><td>Generic RAG</td><td>Retrieval filters are hard SQL constraints tied to jurisdiction, access level and review status — not just a similarity threshold</td></tr>
+<tr><td>Generic patent search</td><td>Matching is scoped to the innovation&rsquo;s own declared target markets and is explicitly never presented as a patentability or infringement determination</td></tr>
+<tr><td>Generic regulatory portal</td><td>Classification runs materially different rule logic per jurisdiction (not a templated label swap) and always discloses its own assumptions and open questions</td></tr>
+<tr><td>Any of the above</td><td>A fully separate, re-verified-per-request admin session; a computed (not asserted) coverage matrix; a 69-test regression suite covering the access-isolation and jurisdiction-correctness claims made in this report</td></tr>
+</tbody>
+</table>
+</div>
+
+<!-- Appendix: Status legend -->
+<div class="section part-start" id="sec-legend">
+<h2><span class="snum">A</span>Technical Status Legend</h2>
+<div class="legend-grid">
+<div class="legend-item"><span class="chip chip-implemented">Implemented</span><span>Fully functional and verified — the complete chain (frontend → API → backend → database/service → AI/RAG → response) works, and is exercised by a passing test or a direct live check performed for this report.</span></div>
+<div class="legend-item"><span class="chip chip-partial">Partial</span><span>Functionality exists but completeness or integration is limited — e.g. provider-dependent, or backed by a thin dataset.</span></div>
+<div class="legend-item"><span class="chip chip-prototype">Prototype</span><span>Demonstration-level implementation, not validated at scale.</span></div>
+<div class="legend-item"><span class="chip chip-mock">Mock</span><span>Uses dummy/static/fictional data or behaviour (clearly labelled as such in the product itself).</span></div>
+<div class="legend-item"><span class="chip chip-planned">Planned</span><span>Documented or intended, but no functional implementation exists.</span></div>
+<div class="legend-item"><span class="chip chip-notimpl">Not Implemented</span><span>No functional implementation found during inspection.</span></div>
+<div class="legend-item"><span class="chip chip-notmeasured">Not Measured</span><span>The capability exists, but no quantitative evaluation of it is available.</span></div>
+</div>
+</div>
+
+<!-- Appendix: evidence index -->
+<div class="section" id="sec-evidence-index">
+<h2><span class="snum">B</span>Repository Evidence Index</h2>
+<p>All file paths referenced in this report are relative to the repository root. Primary directories inspected: <code>backend/app/models/orm.py</code>, <code>backend/app/schemas.py</code>, <code>backend/app/api/endpoints/*.py</code> (9 files), <code>backend/app/services/*.py</code> (research, retrieval, verification, terminology, profile, patents, regulatory, analysis, governance, ingestion, evaluation, llm, audit, query_understanding, packets), <code>backend/app/seed/corpus.py</code> and <code>run.py</code>, <code>backend/alembic/</code>, <code>frontend/app/**</code> (55 routes), <code>frontend/components/*.tsx</code>, <code>frontend/lib/*.ts(x)</code>, <code>tests/*.py</code> (7 files, 69 tests), <code>docker-compose.yml</code>, <code>docker/*.Dockerfile</code>, <code>scripts/start_all.sh</code>, <code>.env.example</code>, <code>README.md</code>. Live endpoints queried directly to source figures for this report: <code>GET /health</code>, <code>GET /api/coverage</code>, <code>GET /api/admin/metrics</code>. This index exists so every factual claim above can be independently re-verified against the repository rather than taken on trust.</p>
+<p class="small" style="margin-top:8mm;">End of report. IP-SAKTI Sahayak — Technical Architecture &amp; Implementation Report, v1.0, Problem Statement 045.</p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  document.getElementById('report-date').textContent = new Date().toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' });
+
+  const PART_LABELS = {
+    'sec-exec': 'Part I — Overview',
+    'sec-func-arch': 'Part II — Architecture',
+    'sec-rag': 'Part III — Core Intelligence Pipeline',
+    'sec-auth': 'Part IV — Platform',
+    'sec-feature-inv': 'Part V — Inventory & Traceability',
+    'sec-legend': 'Appendix',
+  };
+
+  const PAGE_NUMBERS = {"sec-exec": 4, "sec-problem": 4, "sec-solution": 4, "sec-objectives": 5, "sec-users": 5, "sec-func-arch": 7, "sec-sys-arch": 7, "sec-stack": 8, "sec-frontend": 8, "sec-backend": 9, "sec-db": 10, "sec-api": 10, "sec-rag": 11, "sec-ingestion": 11, "sec-sources": 12, "sec-profiler": 12, "sec-patents": 13, "sec-tk": 13, "sec-science": 14, "sec-regulatory": 14, "sec-jurisdiction": 14, "sec-multilingual": 15, "sec-citation": 15, "sec-graph": 15, "sec-safety": 15, "sec-escalation": 16, "sec-auth": 17, "sec-security": 17, "sec-privacy": 18, "sec-admin-arch": 18, "sec-user-flow": 18, "sec-admin-flow": 19, "sec-ai-arch": 19, "sec-ai-extra": 19, "sec-testing": 19, "sec-evaluation": 20, "sec-performance": 20, "sec-deployment": 20, "sec-failure": 21, "sec-feature-inv": 22, "sec-additional": 22, "sec-db-inv": 23, "sec-api-inv": 24, "sec-frontend-inv": 26, "sec-ai-inv": 26, "sec-mapping": 26, "sec-actually-built": 27, "sec-limitations": 27, "sec-roadmap": 27, "sec-diff": 28, "sec-legend": 29, "sec-evidence-index": 29};
+  function buildToc() {
+    const toc = document.getElementById('toc');
+    toc.innerHTML = '';
+    const ul = document.createElement('ul');
+    toc.appendChild(ul);
+    document.querySelectorAll('.section').forEach((sec) => {
+      const h2 = sec.querySelector('h2');
+      if (!h2) return;
+      if (PART_LABELS[sec.id]) {
+        const part = document.createElement('li');
+        part.className = 'part';
+        part.textContent = PART_LABELS[sec.id];
+        ul.appendChild(part);
+      }
+      const snum = h2.querySelector('.snum');
+      const title = h2.textContent.replace(snum ? snum.textContent : '', '').trim();
+      const li = document.createElement('li');
+      const pg = PAGE_NUMBERS[sec.id] || '';
+      li.innerHTML = '<span>' + (snum ? snum.textContent + '. ' : '') + title + '</span><span class="dots"></span><span class="num">' + pg + '</span>';
+      ul.appendChild(li);
+    });
+  }
+  buildToc();
+
+  mermaid.initialize({ startOnLoad: false, theme: 'base', themeVariables: {
+    primaryColor: '#eef1ea', primaryBorderColor: '#1f4d3a', primaryTextColor: '#1b2420',
+    lineColor: '#4a564f', fontFamily: 'Inter, sans-serif', fontSize: '11px',
+    tertiaryColor: '#f6f7f3',
+  }});
+  window.__renderDone = false;
+  const MAX_DIAGRAM_HEIGHT_PX = 760; // keeps every diagram inside one A4 page's usable height
+  mermaid.run({ querySelector: '.mermaid' }).then(() => {
+    // Measure ACTUAL rendered size (not mermaid's internal viewBox coordinate units,
+    // which don't map 1:1 to CSS pixels) and scale via CSS width/height, same as a
+    // responsive <img>, so visual proportions stay correct.
+    document.querySelectorAll('.figure .mermaid svg').forEach((svg) => {
+      const rect = svg.getBoundingClientRect();
+      if (rect.height > MAX_DIAGRAM_HEIGHT_PX) {
+        const scale = MAX_DIAGRAM_HEIGHT_PX / rect.height;
+        svg.style.width = Math.round(rect.width * scale) + 'px';
+        svg.style.height = MAX_DIAGRAM_HEIGHT_PX + 'px';
+      }
+    });
+    window.__renderDone = true;
+  });
+</script>
+</body>
+</html>

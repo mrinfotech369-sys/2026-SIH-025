@@ -1,0 +1,22 @@
+[
+  {
+    "title": "Drugs and Cosmetics Act, 1940",
+    "authority": "CDSCO",
+    "jurisdiction": "INDIA",
+    "domain": "REGULATORY",
+    "source_tier": 1,
+    "source_url": "https://cdsco.gov.in/opencms/export/sites/CDSCO_WEB/Pdf-documents/acts_rules/2016DrugsandCosmeticsAct1940Rules1945.pdf",
+    "verification_date": "2023-01-01",
+    "status": "verified"
+  },
+  {
+    "title": "Biological Diversity Act, 2002",
+    "authority": "National Biodiversity Authority",
+    "jurisdiction": "INDIA",
+    "domain": "BIODIVERSITY",
+    "source_tier": 1,
+    "source_url": "http://nbaindia.org/uploaded/Biodiversityindia/Legal/31.%20Biological%20Diversity%20%20Act,%202002.pdf",
+    "verification_date": "2023-01-01",
+    "status": "verified"
+  }
+]

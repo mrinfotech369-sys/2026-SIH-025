@@ -1,0 +1,26 @@
+[
+  {
+    "id": "Q001",
+    "question": "What is the regulatory pathway for a Classical ASU drug in India?",
+    "jurisdiction": "INDIA",
+    "domain": "REGULATORY",
+    "expected_document_ids": ["doc_id_placeholder"],
+    "status": "needs_review"
+  },
+  {
+    "id": "Q002",
+    "question": "Are traditional knowledge formulations patentable under Section 3(p) of the Patents Act?",
+    "jurisdiction": "INDIA",
+    "domain": "PATENT",
+    "expected_document_ids": ["doc_id_placeholder"],
+    "status": "needs_review"
+  },
+  {
+    "id": "Q003",
+    "question": "What are the requirements for Form I under the National Biodiversity Authority?",
+    "jurisdiction": "INDIA",
+    "domain": "BIODIVERSITY",
+    "expected_document_ids": ["doc_id_placeholder"],
+    "status": "needs_review"
+  }
+]

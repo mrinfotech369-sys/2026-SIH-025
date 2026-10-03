@@ -1,0 +1,188 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* DIGITAL BHARAT PREMIUM Light Theme Defaults */
+    --color-pagebg: #F7F8FC;
+    --color-surface: #FFFFFF;
+    --color-surface-subtle: #EEF1FA;
+    --color-border: #D9DEEE;
+    
+    --color-brand-navy: #0A1A4F;
+    --color-brand-navy-light: #13286B;
+    
+    --color-shakti: #FF9933;
+    --color-shakti-hover: #E8821A;
+    
+    --color-chakra: #06038D;
+    --color-chakra-hover: #2B3BE0;
+    
+    --color-verified: #138808;
+    --color-verified-bg: #E6F4E4;
+    
+    --color-warning: #B45309;
+    --color-warning-bg: #FEF3C7;
+    
+    --color-danger: #B42318;
+    --color-danger-bg: #FEE4E2;
+
+    --color-text-main: #0B1230;
+    --color-text-secondary: #3A4366;
+    --color-text-muted: #5B6488;
+    
+    --on-dark-primary: #FFFFFF;
+    --on-dark-secondary: #E3E8FF;
+    --on-dark-muted: #C5CDF2;
+  }
+
+  .dark {
+    /* Dark Theme Support for AA Contrast Minimum */
+    --color-pagebg: #07080F;
+    --color-surface: #101524;
+    --color-surface-subtle: #171E36;
+    --color-border: #242E50;
+    
+    --color-brand-navy: #0A1A4F; 
+    --color-brand-navy-light: #13286B;
+    
+    --color-shakti: #FF9933;
+    --color-shakti-hover: #FFC857;
+    
+    --color-chakra: #4D5EEB;
+    --color-chakra-hover: #7583F2;
+    
+    --color-verified: #10B981;
+    --color-verified-bg: rgba(16, 185, 129, 0.1);
+    
+    --color-warning: #F59E0B;
+    --color-warning-bg: rgba(245, 158, 11, 0.1);
+    
+    --color-danger: #F43F5E;
+    --color-danger-bg: rgba(244, 63, 94, 0.1);
+
+    --color-text-main: #F5F7FF;
+    --color-text-secondary: #C3C9E2;
+    --color-text-muted: #8F99BD;
+    
+    --on-dark-primary: #FFFFFF;
+    --on-dark-secondary: #E3E8FF;
+    --on-dark-muted: #C5CDF2;
+  }
+
+  body {
+    @apply bg-pagebg text-text-main font-sans min-h-screen transition-colors duration-200 text-base leading-relaxed;
+  }
+  
+  input,
+  textarea,
+  select {
+    @apply bg-surface text-text-main border-2 border-surface-border rounded-xl px-4 py-2.5 text-base outline-none transition-all shadow-sm;
+  }
+  input:focus,
+  textarea:focus,
+  select:focus {
+    @apply border-chakra ring-0 shadow-chakra-glow;
+  }
+  input::placeholder,
+  textarea::placeholder {
+    @apply text-text-muted;
+  }
+  :focus-visible {
+    @apply outline-none ring-2 ring-offset-2 ring-offset-pagebg ring-chakra;
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-heading text-text-main tracking-tight font-bold;
+  }
+}
+
+@layer components {
+  .label {
+    @apply block text-xs font-semibold uppercase tracking-wider text-text-secondary mb-1.5;
+  }
+  .glass-card {
+    @apply bg-surface border border-surface-border rounded-2xl shadow-soft-elevated;
+  }
+  .prose-report h1 {
+    @apply font-heading text-3xl font-bold mb-4 text-brand-navy;
+  }
+  .prose-report h2 {
+    @apply font-heading text-xl mt-8 mb-4 pb-2 border-b border-surface-border text-text-main;
+  }
+  .prose-report h3 {
+    @apply font-semibold text-lg mt-6 mb-3 text-text-main;
+  }
+  .prose-report table {
+    @apply w-full text-sm border-collapse my-6 bg-surface rounded-xl overflow-hidden shadow-sm border border-surface-border;
+  }
+  .prose-report th {
+    @apply border-b border-surface-border px-4 py-3 text-left font-semibold text-text-secondary uppercase tracking-wider text-xs bg-surface-subtle;
+  }
+  .prose-report td {
+    @apply border-b border-surface-border px-4 py-3 text-left align-top text-text-secondary;
+  }
+  .prose-report li {
+    @apply ml-5 list-disc text-base my-2 text-text-secondary;
+  }
+  .prose-report p {
+    @apply text-base my-4 leading-relaxed text-text-secondary;
+  }
+  .prose-report blockquote {
+    @apply border-l-4 border-shakti bg-surface-subtle px-5 py-4 my-6 font-serif text-[17px] text-text-main rounded-r-xl;
+  }
+}
+
+/* Accessibility & Utils */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-delay: -1ms !important;
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    background-attachment: initial !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0s !important;
+    transition-delay: 0s !important;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-surface-border rounded-full;
+}
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-text-muted;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: white;
+    color: black;
+  }
+  .glass-card {
+    box-shadow: none;
+    border: 1px solid #ccc;
+    background: white;
+  }
+  * {
+    color: black !important;
+    text-shadow: none !important;
+    box-shadow: none !important;
+  }
+}
